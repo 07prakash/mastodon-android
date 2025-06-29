@@ -39,7 +39,7 @@ import me.grishka.appkit.utils.CubicBezierInterpolator;
 import me.grishka.appkit.utils.CustomViewHelper;
 
 public class FloatingHintEditTextLayout extends FrameLayout implements CustomViewHelper{
-	private EditText edit;
+	private TextView edit;
 	private View firstChild;
 	private TextView label;
 	private int labelTextSize;
@@ -51,6 +51,7 @@ public class FloatingHintEditTextLayout extends FrameLayout implements CustomVie
 	private ColorStateList labelColors, origHintColors;
 	private boolean errorState;
 	private TextView errorView;
+	private boolean usingErrorTextAsDescription;
 
 	public FloatingHintEditTextLayout(Context context){
 		this(context, null);
@@ -75,7 +76,7 @@ public class FloatingHintEditTextLayout extends FrameLayout implements CustomVie
 		super.onFinishInflate();
 		if(getChildCount()>0){
 			firstChild=getChildAt(0);
-			if(firstChild instanceof EditText et)
+			if(firstChild instanceof TextView et)
 				edit=et;
 		}else{
 			throw new IllegalStateException("Must contain at least one child view");
@@ -133,7 +134,11 @@ public class FloatingHintEditTextLayout extends FrameLayout implements CustomVie
 
 	private void onTextChanged(Editable text){
 		if(errorState){
-			errorView.setVisibility(View.GONE);
+			if(!usingErrorTextAsDescription){
+				errorView.setVisibility(View.GONE);
+			}else{
+				errorView.setTextColor(UiUtils.getThemeColor(getContext(), R.attr.colorM3OnSurfaceVariant));
+			}
 			errorState=false;
 			setForeground(getResources().getDrawable(R.drawable.bg_m3_outlined_text_field, getContext().getTheme()));
 			refreshDrawableState();
@@ -158,6 +163,9 @@ public class FloatingHintEditTextLayout extends FrameLayout implements CustomVie
 				}else{
 					transY=edit.getHeight()/2f-edit.getLineHeight()/2f+(edit.getTop()-label.getTop())-(label.getHeight()/2f-label.getLineHeight()/2f);
 				}
+				int labelX=label.getLeft();
+				int editX=edit.getLeft()+edit.getPaddingLeft();
+				float xOffset=editX-labelX;
 
 				AnimatorSet anim=new AnimatorSet();
 				if(hintVisible){
@@ -166,6 +174,7 @@ public class FloatingHintEditTextLayout extends FrameLayout implements CustomVie
 							ObjectAnimator.ofFloat(label, SCALE_X, scale),
 							ObjectAnimator.ofFloat(label, SCALE_Y, scale),
 							ObjectAnimator.ofFloat(label, TRANSLATION_Y, transY),
+							ObjectAnimator.ofFloat(label, TRANSLATION_X, xOffset),
 							ObjectAnimator.ofFloat(FloatingHintEditTextLayout.this, "animProgress", 0f)
 					);
 					edit.setHintTextColor(0);
@@ -173,11 +182,13 @@ public class FloatingHintEditTextLayout extends FrameLayout implements CustomVie
 					label.setScaleX(scale);
 					label.setScaleY(scale);
 					label.setTranslationY(transY);
+					label.setTranslationX(xOffset);
 					anim.playTogether(
 							ObjectAnimator.ofFloat(edit, TRANSLATION_Y, offsetY),
 							ObjectAnimator.ofFloat(label, SCALE_X, 1f),
 							ObjectAnimator.ofFloat(label, SCALE_Y, 1f),
 							ObjectAnimator.ofFloat(label, TRANSLATION_Y, 0f),
+							ObjectAnimator.ofFloat(label, TRANSLATION_X, 0f),
 							ObjectAnimator.ofFloat(FloatingHintEditTextLayout.this, "animProgress", 1f)
 					);
 				}
@@ -259,6 +270,15 @@ public class FloatingHintEditTextLayout extends FrameLayout implements CustomVie
 		label.setTextColor(UiUtils.getThemeColor(getContext(), R.attr.colorM3Error));
 		errorView.setVisibility(VISIBLE);
 		errorView.setText(error);
+		if(usingErrorTextAsDescription)
+			errorView.setTextColor(UiUtils.getThemeColor(getContext(), R.attr.colorM3Error));
+	}
+
+	public void setErrorTextAsDescription(CharSequence text){
+		errorView.setVisibility(VISIBLE);
+		errorView.setText(text);
+		errorView.setTextColor(UiUtils.getThemeColor(getContext(), R.attr.colorM3OnSurfaceVariant));
+		usingErrorTextAsDescription=true;
 	}
 
 	@Override

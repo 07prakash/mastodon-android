@@ -21,19 +21,22 @@ import java.util.ArrayList;
 
 import me.grishka.appkit.imageloader.ImageLoaderViewHolder;
 import me.grishka.appkit.imageloader.requests.ImageLoaderRequest;
+import me.grishka.appkit.utils.V;
 
 public class SpoilerStatusDisplayItem extends StatusDisplayItem{
 	public final Status status;
 	public final ArrayList<StatusDisplayItem> contentItems=new ArrayList<>();
+	public final Status.SpoilerType spoilerType;
 	private final CharSequence parsedTitle;
 	private CharSequence translatedTitle;
 	private final CustomEmojiHelper emojiHelper;
 	private final Type type;
 
-	public SpoilerStatusDisplayItem(String parentID, BaseStatusListFragment parentFragment, String title, Status status, Status statusForContent, Type type){
+	public SpoilerStatusDisplayItem(String parentID, BaseStatusListFragment parentFragment, String title, Status status, Status statusForContent, Type type, Status.SpoilerType spoilerType){
 		super(parentID, parentFragment);
 		this.status=status;
 		this.type=type;
+		this.spoilerType=spoilerType;
 		if(TextUtils.isEmpty(title)){
 			parsedTitle=HtmlParser.parseCustomEmoji(statusForContent.spoilerText, statusForContent.emojis);
 			emojiHelper=new CustomEmojiHelper();
@@ -86,6 +89,7 @@ public class SpoilerStatusDisplayItem extends StatusDisplayItem{
 
 		@Override
 		public void onBind(SpoilerStatusDisplayItem item){
+			itemView.setPaddingRelative(V.dp(item.fullWidth ? 16 : 64), itemView.getPaddingTop(), itemView.getPaddingEnd(), itemView.getPaddingBottom());
 			if(item.status.translationState==Status.TranslationState.SHOWN){
 				if(item.translatedTitle==null){
 					item.translatedTitle=item.status.translation.spoilerText;
@@ -94,7 +98,7 @@ public class SpoilerStatusDisplayItem extends StatusDisplayItem{
 			}else{
 				title.setText(item.parsedTitle);
 			}
-			action.setText(item.status.spoilerRevealed ? R.string.spoiler_hide : R.string.spoiler_show);
+			action.setText(item.status.revealedSpoilers.contains(item.spoilerType) ? R.string.spoiler_hide : R.string.spoiler_show);
 		}
 
 		@Override

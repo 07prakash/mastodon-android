@@ -7,6 +7,7 @@ import android.graphics.Rect;
 import android.graphics.drawable.Animatable;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
+import android.os.Build;
 import android.text.TextUtils;
 import android.view.Gravity;
 import android.view.View;
@@ -35,7 +36,6 @@ import androidx.recyclerview.widget.RecyclerView;
 import me.grishka.appkit.imageloader.ImageLoaderRecyclerAdapter;
 import me.grishka.appkit.imageloader.ImageLoaderViewHolder;
 import me.grishka.appkit.imageloader.ListImageLoaderWrapper;
-import me.grishka.appkit.imageloader.RecyclerViewDelegate;
 import me.grishka.appkit.imageloader.requests.ImageLoaderRequest;
 import me.grishka.appkit.imageloader.requests.UrlImageLoaderRequest;
 import me.grishka.appkit.utils.BindableViewHolder;
@@ -81,7 +81,7 @@ public class CustomEmojiPopupKeyboard extends PopupKeyboard{
 		});
 		list.setLayoutManager(lm);
 		list.setPadding(V.dp(16), 0, V.dp(16), 0);
-		imgLoader=new ListImageLoaderWrapper(activity, list, new RecyclerViewDelegate(list), null);
+		imgLoader=new ListImageLoaderWrapper(activity, list, list, null);
 
 		for(EmojiCategory category:emojis)
 			adapter.addAdapter(new SingleCategoryAdapter(category));
@@ -216,7 +216,7 @@ public class CustomEmojiPopupKeyboard extends PopupKeyboard{
 		}
 	}
 
-	private class EmojiViewHolder extends BindableViewHolder<Emoji> implements ImageLoaderViewHolder, UsableRecyclerView.Clickable{
+	private class EmojiViewHolder extends BindableViewHolder<Emoji> implements ImageLoaderViewHolder{
 		public int positionWithinCategory;
 		public EmojiViewHolder(){
 			super(new ImageView(activity));
@@ -226,11 +226,14 @@ public class CustomEmojiPopupKeyboard extends PopupKeyboard{
 			int pad=V.dp(12);
 			img.setPadding(pad, pad, pad, pad);
 			img.setBackgroundResource(R.drawable.bg_custom_emoji);
+			itemView.setOnClickListener(v->onClick());
 		}
 
 		@Override
 		public void onBind(Emoji item){
-
+			if(Build.VERSION.SDK_INT>=Build.VERSION_CODES.O){
+				itemView.setTooltipText(':'+item.shortcode+':');
+			}
 		}
 
 		@Override
@@ -245,8 +248,7 @@ public class CustomEmojiPopupKeyboard extends PopupKeyboard{
 			((ImageView)itemView).setImageDrawable(null);
 		}
 
-		@Override
-		public void onClick(){
+		private void onClick(){
 			listener.onEmojiSelected(item);
 		}
 	}

@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<resources>
+<resources xmlns:tools="http://schemas.android.com/tools" tools:ignore="MissingTranslation">
 	<string name="log_in">登入</string>
 	<string name="next">下一步</string>
 	<string name="loading_instance">正在取得伺服器資訊...</string>
@@ -9,13 +9,12 @@
 	<string name="preparing_auth">正在準備認證……</string>
 	<string name="finishing_auth">正在結束認證……</string>
 	<string name="user_boosted">%s 已轉嘟</string>
-	<string name="in_reply_to">回覆給 %s</string>
+	<string name="in_reply_to">回覆 %s</string>
 	<string name="notifications">通知</string>
 	<string name="user_followed_you">%s 已跟隨您</string>
 	<string name="user_sent_follow_request">%s 已傳送跟隨請求給您</string>
-	<string name="user_favorited">%s 已將您的嘟文加入最愛</string>
-	<string name="notification_boosted">%s 已轉嘟您的嘟文</string>
-	<string name="poll_ended">檢視您參與之一則投票結果</string>
+	<string name="user_favorited">%s 個已加入最愛：</string>
+	<string name="notification_boosted">%s 個已轉嘟：</string>
 	<string name="share_toot_title">分享</string>
 	<string name="settings">設定</string>
 	<string name="publish">發佈</string>
@@ -35,7 +34,7 @@
 	<string name="button_follow">跟隨</string>
 	<string name="button_following">正在跟隨</string>
 	<string name="edit_profile">編輯個人檔案</string>
-	<string name="share_user">分享個人檔案</string>
+	<string name="share_user">分享個人檔案方式...</string>
 	<string name="mute_user">靜音 %s</string>
 	<string name="unmute_user">取消靜音 %s</string>
 	<string name="block_user">封鎖 %s</string>
@@ -79,22 +78,11 @@
 		<item quantity="other">%,d 票</item>
 	</plurals>
 	<string name="poll_closed">已關閉</string>
-	<string name="confirm_mute_title">靜音帳號</string>
-	<string name="confirm_mute">確認將 %s 靜音</string>
 	<string name="do_mute">靜音</string>
-	<string name="confirm_unmute_title">取消靜音帳號</string>
-	<string name="confirm_unmute">確認將 %s 取消靜音</string>
-	<string name="do_unmute">取消靜音</string>
-	<string name="confirm_block_title">封鎖帳號</string>
-	<string name="confirm_block_domain_title">封鎖網域</string>
-	<string name="confirm_block">確認將 %s 封鎖</string>
 	<string name="do_block">封鎖</string>
-	<string name="confirm_unblock_title">解除封鎖帳號</string>
-	<string name="confirm_unblock_domain_title">解除封鎖網域</string>
-	<string name="confirm_unblock">確認將 %s 解除封鎖</string>
-	<string name="do_unblock">解除封鎖</string>
 	<string name="button_blocked">已封鎖</string>
 	<string name="action_vote">投票</string>
+	<string name="confirm">確認</string>
 	<string name="delete">刪除</string>
 	<string name="confirm_delete_title">刪除嘟文</string>
 	<string name="confirm_delete">您確定要刪除此嘟文？</string>
@@ -137,22 +125,21 @@
 	<string name="unfollow_user">取消跟隨 %s</string>
 	<string name="unfollow">取消跟隨</string>
 	<string name="mute_user_explain">您將不再看到他們的嘟文。他們仍能可以跟隨您以及察看您的嘟文，並且不會知道他們已被靜音。</string>
-	<string name="block_user_explain">您將不再看到他們的嘟文。他們將無法看到您的嘟文或是跟隨您。他們會發現他們已被封鎖。</string>
+	<string name="block_user_explain">您將不再看到他們的嘟文。他們將無法看到您的嘟文或是跟隨您。他們將發現他們已被封鎖。</string>
 	<string name="report_personal_title">不想再看到這個？</string>
 	<string name="report_personal_subtitle">以下是控制您想於 Mastodon 看到什麼內容之選項：</string>
 	<string name="back">返回</string>
 	<string name="search_communities">伺服器名稱或 URL</string>
 	<string name="instance_rules_title">伺服器規則</string>
-	<string name="instance_rules_subtitle">繼續的話，您將同意以下由 %s 之管理員訂定及執行之伺服器規則。</string>
+	<string name="instance_rules_subtitle">如果繼續，您將同意以下由 %s 之管理員訂定及執行之伺服器規則。</string>
 	<string name="signup_title">新增帳號</string>
 	<string name="display_name">名稱</string>
 	<string name="username">使用者名稱</string>
 	<string name="email">電子郵件地址</string>
 	<string name="password">密碼</string>
 	<string name="confirm_password">確認密碼</string>
-	<string name="password_note">包含大寫、特殊字元、以及數字來提升您的密碼強度。</string>
 	<string name="category_general">一般</string>
-	<string name="confirm_email_title">請檢查您的收件夾</string>
+	<string name="confirm_email_title">請檢查您的收件匣</string>
 	<!-- %s is the email address -->
 	<string name="confirm_email_subtitle">請點擊我們寄給您連結以驗證 %s。我們將於此稍候。</string>
 	<string name="confirm_email_didnt_get">無法取得連結嗎？</string>
@@ -164,10 +151,9 @@
 	<string name="save">儲存</string>
 	<string name="add_alt_text">新增說明文字</string>
 	<string name="visibility_public">公開</string>
-	<string name="visibility_followers_only">僅限跟隨者</string>
-	<string name="visibility_private">僅限提及者</string>
+	<string name="visibility_followers_only">跟隨者</string>
+	<string name="visibility_private">指定使用者</string>
 	<string name="recent_searches">最近的</string>
-	<string name="skip">跳過</string>
 	<string name="notification_type_follow">新的跟隨者</string>
 	<string name="notification_type_favorite">最愛</string>
 	<string name="notification_type_reblog">轉嘟</string>
@@ -186,7 +172,7 @@
 	<string name="theme_dark">深色</string>
 	<string name="settings_behavior">行為</string>
 	<string name="settings_gif">播放動畫大頭貼與表情符號</string>
-	<string name="settings_custom_tabs">使用應用程式內建瀏覽器</string>
+	<string name="settings_custom_tabs">開啟連結於</string>
 	<string name="settings_notifications">通知</string>
 	<string name="settings_contribute">貢獻 Mastodon</string>
 	<string name="settings_tos">服務條款</string>
@@ -214,11 +200,11 @@
 	<string name="unfollowed_user">取消跟隨 %s</string>
 	<string name="followed_user">您現在開始跟隨 %s</string>
 	<string name="following_user_requested">要求跟隨 %s</string>
-	<string name="open_in_browser">在瀏覽器中開啟</string>
-	<string name="hide_boosts_from_user">隱藏來自 %s 的轉嘟</string>
-	<string name="show_boosts_from_user">顯示來自 %s 的轉嘟</string>
+	<string name="open_in_browser">於瀏覽器中開啟</string>
+	<string name="hide_boosts_from_user">隱藏轉嘟</string>
+	<string name="show_boosts_from_user">顯示轉嘟</string>
 	<string name="signup_reason">為什麼想要加入呢？</string>
-	<string name="signup_reason_note">這會協助我們審核您的申請。</string>
+	<string name="signup_reason_note">這將協助我們審核您的申請。</string>
 	<string name="clear">清除</string>
 	<string name="profile_header">標題圖片</string>
 	<string name="profile_picture">大頭貼</string>
@@ -228,17 +214,15 @@
 	<string name="storage_permission_to_download">這個 app 需要儲存空間的以儲存這個檔案。</string>
 	<string name="open_settings">開啟設定</string>
 	<string name="error_saving_file">儲存檔案時發生錯誤</string>
-	<string name="file_saved">儲存成功</string>
 	<string name="downloading">正在下載...</string>
 	<string name="no_app_to_handle_action">沒有可以處理這個動作的 app</string>
-	<string name="local_timeline">本站</string>
+	<string name="local_timeline">即時河道</string>
 	<string name="trending_posts_info_banner">這些嘟文正在 Mastodon 的各個角落受到注目。</string>
 	<string name="trending_links_info_banner">這些新聞故事正在 Mastodon 上被熱烈討論著。</string>
 	<!-- %s is the server domain -->
 	<string name="local_timeline_info_banner">這些是來自您伺服器 (%s) 所有使用者之嘟文。</string>
 	<string name="recommended_accounts_info_banner">基於您所跟隨的其他人，您可能會喜歡這些帳號。</string>
 	<string name="see_new_posts">新嘟文</string>
-	<string name="load_missing_posts">讀取錯過的嘟文</string>
 	<string name="follow_back">跟隨回去</string>
 	<string name="button_follow_pending">等待中</string>
 	<string name="follows_you">已跟隨您</string>
@@ -289,8 +273,6 @@
 	<string name="file_size_mb">%.2f MB</string>
 	<string name="file_size_gb">%.2f GB</string>
 	<string name="upload_processing">處理中...</string>
-	<!-- %s is version like 1.2.3 -->
-	<!-- %s is version like 1.2.3 -->
 	<!-- %s is file size -->
 	<string name="download_update">下載 (%s)</string>
 	<string name="install_update">安裝</string>
@@ -303,11 +285,10 @@
 	<string name="add_bookmark">書籤</string>
 	<string name="remove_bookmark">移除書籤</string>
 	<string name="bookmarks">書籤</string>
-	<string name="your_favorites">您的最愛</string>
+	<string name="your_favorites">最愛</string>
 	<string name="login_title">歡迎回來</string>
 	<string name="login_subtitle">以您建立帳號之伺服器登入。</string>
 	<string name="server_url">伺服器 URL</string>
-	<string name="signup_random_server_explain">如果您不選擇而繼續的話，我們將透過您的語言設定替您選擇一台伺服器。</string>
 	<string name="server_filter_any_language">任何語言</string>
 	<string name="server_filter_instant_signup">立即註冊</string>
 	<string name="server_filter_manual_review">手動審核</string>
@@ -321,11 +302,9 @@
 	<string name="not_accepting_new_members">目前暫不開放新成員</string>
 	<string name="category_special_interests">特別興趣</string>
 	<string name="signup_passwords_dont_match">密碼不一致</string>
-	<string name="pick_server_for_me">請替我選擇</string>
 	<string name="profile_add_row">新增</string>
 	<string name="profile_setup">個人檔案設定</string>
 	<string name="profile_setup_subtitle">您隨時能稍候於個人檔案頁面完成此設定。</string>
-	<string name="popular_on_mastodon">Mastodon 上之流行內容</string>
 	<string name="follow_all">跟隨所有</string>
 	<string name="server_rules_disagree">不同意</string>
 	<string name="privacy_policy_explanation">TL;DR：我們不蒐集或處理任何資料。</string>
@@ -382,7 +361,7 @@
 	<string name="alt_text">ALT 說明文字</string>
 	<string name="help">幫助</string>
 	<string name="what_is_alt_text">什麼是 ALT 說明文字？</string>
-	<string name="alt_text_help">ALT 說明文字為視覺障礙者、低網路頻寬或尋求額外上下文語境的人們提供圖片描述。\n\n您可以透過撰寫清晰、簡潔及客觀的說明文字以替所有人改善無障礙特性與協助理解。\n\n<ul><li>掌握幾個重要元素</li>\n<li>替圖片提供文字摘要</li>\n<li>使用常規行文結構</li>\n<li>避免冗贅資訊</li>\n<li>聚焦於趨勢和複雜視覺中之關鍵（如圖表或地圖）</li></ul></string>
+	<string name="alt_text_help">ALT 說明文字為視覺障礙者、低網路頻寬或尋求額外上下文語境的人們提供圖片描述。\n\n您可以透過撰寫清晰、簡潔及客觀的說明文字以替所有人改善無障礙特性與協助理解。\n\n<ul><li>掌握幾個重要元素</li>\n<li>替圖片提供文字摘要</li>\n<li>使用常規行文結構</li>\n<li>避免冗贅資訊</li>\n<li>聚焦於趨勢與複雜視覺中之關鍵（如圖表或地圖）</li></ul></string>
 	<string name="edit_post">編輯嘟文</string>
 	<string name="no_verified_link">無已驗證連結</string>
 	<string name="compose_autocomplete_emoji_empty">瀏覽 emoji</string>
@@ -578,15 +557,15 @@
 	<string name="remove">移除</string>
 	<string name="add_list_member">新增成員</string>
 	<string name="search_among_people_you_follow">搜尋您跟隨的使用者</string>
-	<string name="add_user_to_list">新增至列表...</string>
+	<string name="add_user_to_list">自列表中新增或移除...</string>
 	<string name="add_user_to_list_title">新增至列表</string>
 	<!-- %s is a username -->
 	<string name="manage_user_lists">管理包含 %s 之列表</string>
-	<string name="remove_from_list">從列表中移除</string>
+	<string name="remove_from_list">自列表中移除</string>
 	<string name="confirm_remove_list_member">移除此成員？</string>
 	<string name="no_followed_hashtags_title">跟隨主題標籤以跟上興趣主題</string>
 	<string name="no_followed_hashtags_subtitle">已跟隨的主題標籤將顯示於此</string>
-	<string name="no_lists_title">藉由列表以整理您的首頁河道</string>
+	<string name="no_lists_title">藉由列表以整理您的首頁時間軸</string>
 	<string name="no_lists_subtitle">您的將出現於此</string>
 	<string name="manage_accounts">新增或切換帳號</string>
 	<plurals name="x_posts_recently">
@@ -619,6 +598,223 @@
 	<string name="non_mutual_text3">每個人的談話風格總是獨一無二的。請做好適應的準備。</string>
 	<string name="make_profile_discoverable">使我的個人檔案可以被找到</string>
 	<string name="discoverability">可發現性</string>
-	<string name="discoverability_help">當您於 Mastodon 上選擇加入可發現性時，您的嘟文可能會出現於搜尋結果與趨勢中。\n\n您的個人檔案可能會被推薦給與您志趣相投的人。\n\n即使選擇退出，當其他人以帳號搜尋您時仍將顯示您的個人檔案。</string>
+	<string name="discoverability_help">當您於 Mastodon 上選擇加入可發現性時，您的嘟文可能將出現於搜尋結果與趨勢中。\n\n您的個人檔案可能會被推薦給與您志趣相投的人。\n\n即使選擇退出，當其他人以帳號搜尋您時仍將顯示您的個人檔案。</string>
 	<string name="app_version_copied">版本號碼已複製到剪貼簿</string>
+	<string name="onboarding_recommendations_intro">您決定自己的首頁時間軸。
+若您跟隨越多人，首頁時間軸將越活躍且有趣。</string>
+	<string name="onboarding_recommendations_title">客製化您的首頁時間軸</string>
+	<string name="article_by_author">來自 %s</string>
+	<string name="button_reblogged">已轉嘟</string>
+	<string name="button_favorited">已加入最愛</string>
+	<string name="join_server_x_with_invite">透過邀請加入 %s</string>
+	<string name="expired_invite_link">已過期邀請連結</string>
+	<string name="expired_clipboard_invite_link_alert">您剪貼簿中 %1$s 之邀請連結已過期且無法用於註冊。\n\n您可以透過既有使用者請求新的連結，透過 %2$s 註冊，或者於其他伺服器註冊。</string>
+	<string name="invalid_invite_link">無效的邀請連結</string>
+	<string name="invalid_clipboard_invite_link_alert">您剪貼簿中 %1$s 之邀請連結是無效的且無法用於註冊。\n\n您可以透過既有使用者請求新的連結，透過 %2$s 註冊，或者於其他伺服器註冊。</string>
+	<string name="use_invite_link">使用邀請連結</string>
+	<string name="enter_invite_link">輸入邀請連結</string>
+	<string name="this_invite_is_invalid">此邀請連結是無效的。</string>
+	<string name="this_invite_has_expired">此邀請連結已過期。</string>
+	<string name="invite_link_pasted">已由剪貼簿貼上連結。</string>
+	<string name="need_invite_to_join_server">您需要一份由既有使用者取得之邀請連結以加入 %s。</string>
+	<string name="mute_user_confirm_title">是否靜音該使用者？</string>
+	<string name="user_wont_know_muted">他們不會知道他們已被靜音。</string>
+	<string name="user_can_still_see_your_posts">他們仍可讀取您的嘟文，但您不會見到他們的。</string>
+	<string name="you_wont_see_user_mentions">您不會見到提及他們的嘟文。</string>
+	<string name="user_can_mention_and_follow_you">他們仍可提及或跟隨您，但您不會見到他們。</string>
+	<string name="unmuted_user_x">取消靜音 %s</string>
+	<string name="block_user_confirm_title">是否封鎖該使用者？</string>
+	<string name="user_can_see_blocked">他們能見到他們已被封鎖。</string>
+	<string name="user_cant_see_each_other_posts">他們不可讀取您的嘟文，且您不會見到他們的。</string>
+	<string name="user_cant_mention_or_follow_you">他們不可提及或跟隨您。</string>
+	<string name="unblocked_user_x">解除封鎖 %s</string>
+	<string name="block_domain_confirm_title">是否封鎖該網域？</string>
+	<string name="do_block_server">封鎖伺服器</string>
+	<string name="block_user_x_instead">改為封鎖 %s</string>
+	<string name="users_cant_see_blocked">您不會見到來自此伺服器使用者之任何嘟文或通知。</string>
+	<string name="you_wont_see_server_posts">您不會見到來自此伺服器使用者之任何嘟文。</string>
+	<string name="server_cant_mention_or_follow_you">來自此伺服器之使用者將無法跟隨您。</string>
+	<string name="server_can_interact_with_older">來自此伺服器之使用者能與您以往的嘟文互動。</string>
+	<string name="unblocked_domain_x">解除封鎖網域 %s</string>
+	<string name="handle_help_title">什麼是帳號 (@handle) ？</string>
+	<string name="handle_title">他們的帳號</string>
+	<string name="handle_username_explanation">他們於他們的伺服器中獨一無二的識別。於不同的伺服器上可能找到具有相同帳號的使用者。</string>
+	<string name="handle_title_own">您的帳號</string>
+	<string name="handle_username_explanation_own">您於您的伺服器中獨一無二的識別。於不同的伺服器上可能找到具有相同帳號的使用者。</string>
+	<string name="server">伺服器</string>
+	<string name="handle_server_explanation">他們數位世界的家，他們所有的嘟文都在這裡。</string>
+	<string name="handle_explanation">由於帳號 (@handle) 能說明某人是誰以及他們來自何方，您能於 &lt;a&gt;支援 ActivityPub 的平臺&lt;/a&gt; 之社群網路上與人們互動。</string>
+	<string name="handle_server_explanation_own">您數位世界的家，您所有的嘟文都在這裡。不喜歡這台伺服器嗎？您能隨時搬家至其他伺服器並且仍保有您的跟隨者。</string>
+	<string name="handle_explanation_own">由於帳號 (@handle) 能說明您是誰以及您來自何方，人們能於 &lt;a&gt;支援 ActivityPub 的平臺&lt;/a&gt; 之社群網路上與您互動。</string>
+	<string name="what_is_activitypub_title">什麼是 ActivityPub？</string>
+	<string name="what_is_activitypub">ActivityPub 像是 Mastodon 與其他社群網路溝通的語言。\n\n它能使您不只於 Mastodon 且與其他社群網路的人們互動。</string>
+	<string name="handle_copied">帳號 (@handle) 已複製至剪貼簿。</string>
+	<string name="qr_code">QR code</string>
+	<string name="scan_qr_code">掃描 QR code</string>
+	<!-- Shown on a button that saves a file, after it was successfully saved -->
+	<string name="saved">已儲存</string>
+	<string name="image_saved">圖片已儲存。</string>
+	<string name="video_saved">影片已儲存。</string>
+	<string name="view_file">檢視</string>
+	<string name="share_sheet_preview_profile">%s 於 Mastodon</string>
+	<string name="share_sheet_preview_post">%1$s 於 Mastodon：「%2$s」</string>
+	<string name="copy_profile_link">複製個人檔案連結</string>
+	<string name="in_app_browser">應用程式內建瀏覽器</string>
+	<string name="system_browser">系統瀏覽器</string>
+	<string name="add_muted_word_short">新增靜音文字</string>
+	<string name="tab_home">首頁</string>
+	<string name="tab_search">探索</string>
+	<string name="tab_profile">個人檔案</string>
+	<string name="pin_post">釘選至個人檔案頁面</string>
+	<string name="unpin_post">自個人檔案頁面取消釘選</string>
+	<string name="post_pinned">該嘟文已被釘選</string>
+	<string name="post_unpinned">該嘟文已被取消釘選</string>
+	<!-- %s is the username -->
+	<string name="enable_new_post_notifications">當 %s 嘟文時通知我</string>
+	<string name="disable_new_post_notifications">取消來自 %s 的嘟文通知</string>
+	<string name="new_post_notifications_enabled">您將收到新嘟文的通知。</string>
+	<string name="new_post_notifications_disabled">您將不再收到新嘟文的通知。</string>
+	<string name="mute_conversation">靜音對話</string>
+	<string name="unmute_conversation">取消此對話的靜音</string>
+	<string name="visibility_unlisted">不於公開時間軸顯示</string>
+	<string name="filtered_notifications">已過濾之通知</string>
+	<string name="filter_notifications">過濾通知來自...</string>
+	<string name="notification_filter_following">您未跟隨之使用者</string>
+	<string name="notification_filter_following_explanation">直至您手動核准他們</string>
+	<string name="notification_filter_followers">未跟隨您之使用者</string>
+	<string name="notification_filter_followers_explanation">包含近三日內跟隨您的人</string>
+	<string name="notification_filter_new_accounts">新帳號</string>
+	<string name="notification_filter_new_accounts_explanation">三十天內之新帳號</string>
+	<string name="notification_filter_mentions">不請自來的私訊</string>
+	<string name="notification_filter_mentions_explanation">過濾通知，除非嘟文包含於您的提及，或您跟隨該發嘟帳號</string>
+	<string name="allow_notifications">允許通知</string>
+	<string name="mute_notifications">關閉推播通知請求</string>
+	<plurals name="x_people_you_may_know">
+		<item quantity="other">您可能認識的 %,d 人</item>
+	</plurals>
+	<string name="notifications_from_user">來自 %s 之通知</string>
+	<string name="notifications_muted">已關閉來自 %s 之推播通知請求。</string>
+	<string name="notifications_allowed">%s 將不再出現於您的通知列表。</string>
+	<string name="visibility_subtitle_public">所有人 (無論在 Mastodon 上與否)</string>
+	<string name="visibility_subtitle_unlisted">悄然無聲</string>
+	<string name="visibility_subtitle_followers">只有跟隨您之使用者能看到</string>
+	<string name="visibility_subtitle_private">此嘟文提及之所有人</string>
+	<string name="view_boosts">檢視轉嘟</string>
+	<string name="view_favorites">檢視最愛</string>
+	<string name="undo_reblog">取消轉嘟</string>
+	<string name="undo_favorite">取消最愛</string>
+	<string name="could_not_reach_server">無法連接至伺服器。請您檢查連線並再重試。</string>
+	<string name="connection_timed_out">請求已逾時。請您檢查連線並再重試。</string>
+	<string name="server_error">連線至您的伺服器時發生了某些錯誤。應該不是您的錯，請再試一次？</string>
+	<string name="not_found">可能已被刪除，或從來都不曾存在過。</string>
+	<string name="no_servers_found">找不到伺服器「%s」</string>
+	<string name="signup_username_taken">此帳號已被註冊。請嘗試不同帳號或 &lt;a&gt;挑選另一個伺服器&lt;/a&gt;。</string>
+	<string name="signup_email_invalid">您的郵件地址也許不是有效的。</string>
+	<string name="signup_email_taken">此電子郵件信箱已被使用。您是否 &lt;a&gt;忘記密碼&lt;/a&gt;？</string>
+	<plurals name="x_new_notifications">
+		<item quantity="other">%,d 則新通知</item>
+	</plurals>
+	<string name="dismiss">關閉</string>
+	<string name="donation_once">僅限一次</string>
+	<string name="donation_monthly">每月</string>
+	<string name="donation_yearly">每年</string>
+	<string name="currency">幣別</string>
+	<string name="donation_success_share">昭告天下！</string>
+	<string name="donation_success_title">感謝您的貢獻！</string>
+	<string name="donation_success_subtitle">您稍候應將收到一封 email 確認您的捐款。</string>
+	<string name="donation_server_error">很抱歉，發生錯誤且我們無法處理您的捐款。\n\n請稍候重試。</string>
+	<string name="settings_donate">捐款給 Mastodon</string>
+	<string name="settings_manage_donations">管理捐款</string>
+	<string name="cant_load_image">無法載入圖片</string>
+	<string name="poll_see_results">檢視結果</string>
+	<string name="poll_hide_results">隱藏結果</string>
+	<plurals name="x_attachments">
+		<item quantity="other">%d 則附件</item>
+	</plurals>
+	<plurals name="user_and_x_more_favorited">
+		<item quantity="other">%1$s 與 %2$,d 個其他人已加入最愛：</item>
+	</plurals>
+	<plurals name="user_and_x_more_boosted">
+		<item quantity="other">%1$s 與 %2$,d 個其他人已加轉嘟：</item>
+	</plurals>
+	<plurals name="poll_ended_x_voters">
+		<item quantity="other">%1$s 舉行您與其他 %2$,d 個人參與之投票</item>
+	</plurals>
+	<string name="own_poll_ended">您的投票已結束</string>
+	<string name="user_just_posted">%s 剛剛嘟文</string>
+	<string name="user_edited_post">%s 已編輯一則您曾互動過之嘟文</string>
+	<string name="relationship_severance_account_suspension">%1$s 之管理員已將 %2$s 停權，意味著您將不再收到來自他們的更新或與之互動。</string>
+	<!-- %1$s is your server domain, %2$s is the domain that was blocked, %3$,d is the follower count, %4$s is the `x_accounts` plural string -->
+	<string name="relationship_severance_domain_block">%1$s 之管理員已將 %2$s 封鎖，包含 %3$,d 個您的跟隨者及 %4$s 個您所跟隨之帳號。</string>
+	<plurals name="x_accounts">
+		<item quantity="other">%,d 個帳號</item>
+	</plurals>
+	<!-- %1$s is the domain that was blocked, %2$,d is the follower count, %3$s is the `x_accounts` plural string -->
+	<string name="relationship_severance_user_domain_block">您已封鎖 %1$s，將移除 %2$,d 個您的跟隨者及 %3$s 個您所跟隨之帳號。</string>
+	<string name="relationship_severance_learn_more">了解更多</string>
+	<string name="moderation_warning_action_none">您的帳號已收到管理員警告。</string>
+	<string name="moderation_warning_action_disable">您的帳號已被停用。</string>
+	<string name="moderation_warning_action_mark_statuses_as_sensitive">某些您的嘟文已被標記為敏感內容。</string>
+	<string name="moderation_warning_action_delete_statuses">某些您的嘟文已被刪除。</string>
+	<string name="moderation_warning_action_sensitive">即日起，您的嘟文將被標記為敏感內容。</string>
+	<string name="moderation_warning_action_silence">您的帳號已被限制。</string>
+	<string name="moderation_warning_action_suspend">您的帳號已被停權。</string>
+	<string name="moderation_warning_learn_more">了解更多</string>
+	<string name="text_show_more">更多</string>
+	<string name="avatar_move_and_scale">移動與縮放</string>
+	<string name="confirm_avatar_crop">選擇</string>
+	<string name="settings_use_dynamic_colors">使用系統動態顏色</string>
+	<string name="settings_accounts">帳號</string>
+	<string name="settings_add_account">新增帳號...</string>
+	<string name="settings_app_settings">應用程式設定</string>
+	<string name="account_settings">帳號設定</string>
+	<string name="settings_about_this_server">關於此伺服器</string>
+	<string name="manage_account">管理帳號</string>
+	<string name="switch_to_this_account">切換至此帳號</string>
+	<string name="delete_account">刪除帳號</string>
+	<string name="notification_type_status">新嘟文</string>
+	<plurals name="user_and_x_more_followed">
+		<item quantity="other">%1$s 與 %2$,d 個其他人已跟隨您</item>
+	</plurals>
+	<string name="familiar_followers_one">被 %s 跟隨</string>
+	<string name="familiar_followers_two">被 %s 與 %s 跟隨</string>
+	<string name="profile_saved_posts">已儲存</string>
+	<string name="profile_saved_posts_explanation">您的已儲存嘟文僅為您所見。</string>
+	<string name="search_people">使用者</string>
+	<plurals name="familiar_followers_many">
+		<item quantity="other">被 %1$s、%2$s、與其他 %3$,d 名使用者跟隨</item>
+	</plurals>
+	<plurals name="x_followers_you_know">
+		<item quantity="other">%,d 名您認識的跟隨者</item>
+	</plurals>
+	<!-- appears when you're about to block a server -->
+	<plurals name="server_x_followers_will_be_removed">
+		<item quantity="other">您來自此伺服器之 %,d 名跟隨者將被移除。</item>
+	</plurals>
+	<!-- The complete string will look like "You will lose X followers and Y people you follow". See will_lose_x_followers and will_lose_x_following -->
+	<string name="server_x_followers_and_following_will_be_removed">您將失去 %1$s 與 %2$s 。</string>
+	<plurals name="will_lose_x_followers">
+		<item quantity="other">%,d 個跟隨者</item>
+	</plurals>
+	<plurals name="will_lose_x_following">
+		<item quantity="other">您跟隨之 %,d 人</item>
+	</plurals>
+	<!-- The complete string will look like "You will lose X people you follow". See will_lose_x_following -->
+	<string name="server_x_following_will_be_removed">您將失去 %s 。</string>
+	<string name="load_missing_posts_above">讀取以上錯過的嘟文</string>
+	<string name="load_missing_posts_below">讀取以下錯過的嘟文</string>
+	<string name="signup_password_too_short">密碼長度至少需要八個字元。</string>
+	<string name="private_reply">私訊回嘟</string>
+	<string name="private_mention">私訊</string>
+	<string name="post_header_reply">回嘟</string>
+	<string name="post_header_mention">提及</string>
+	<string name="report_reason_legal">這是非法事項</string>
+	<string name="report_reason_legal_subtitle">您認為它已違反您或伺服器所在國家之法律</string>
+	<string name="date_of_birth">出生日期</string>
+	<!-- %s is `at_least_x_years_old`. Some languages, unlike English, may require the word "years" here. -->
+	<string name="date_of_birth_explanation">我們必須確認您至少年滿 %s 以使用 Mastodon。我們不會儲存此資料。</string>
+	<!-- Substituted into `date_of_birth_explanation` -->
+	<plurals name="at_least_x_years_old">
+		<item quantity="other">%d</item>
+	</plurals>
 </resources>

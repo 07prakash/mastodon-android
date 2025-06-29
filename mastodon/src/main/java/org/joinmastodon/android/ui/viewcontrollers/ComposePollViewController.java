@@ -6,12 +6,13 @@ import android.animation.AnimatorSet;
 import android.animation.ObjectAnimator;
 import android.app.AlertDialog;
 import android.graphics.RectF;
+import android.os.Build;
 import android.os.Bundle;
+import android.os.VibrationEffect;
 import android.view.HapticFeedbackConstants;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Checkable;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -190,28 +191,20 @@ public class ComposePollViewController{
 			if(l==pollDuration)
 				selectedOption=i;
 		}
-		int[] chosenOption={0};
 		new M3AlertDialogBuilder(fragment.getActivity())
-				.setSingleChoiceItems(options, selectedOption, (dialog, which)->chosenOption[0]=which)
-				.setTitle(R.string.poll_length)
-				.setPositiveButton(R.string.ok, (dialog, which)->{
-					pollDuration=POLL_LENGTH_OPTIONS[chosenOption[0]];
+				.setSingleChoiceItems(options, selectedOption, (dialog, which)->{
+					pollDuration=POLL_LENGTH_OPTIONS[which];
 					pollDurationValue.setText(UiUtils.formatDuration(fragment.getContext(), pollDuration));
+					dialog.dismiss();
 				})
-				.setNegativeButton(R.string.cancel, null)
+				.setTitle(R.string.poll_length)
 				.show();
 	}
 
 	private void showPollStyleAlert(){
-		final int[] option={pollIsMultipleChoice ? R.id.multiple_choice : R.id.single_choice};
 		AlertDialog alert=new M3AlertDialogBuilder(fragment.getActivity())
 				.setView(R.layout.poll_style)
 				.setTitle(R.string.poll_style_title)
-				.setPositiveButton(R.string.ok, (dlg, which)->{
-					pollIsMultipleChoice=option[0]==R.id.multiple_choice;
-					pollStyleValue.setText(pollIsMultipleChoice ? R.string.compose_poll_multiple_choice : R.string.compose_poll_single_choice);
-				})
-				.setNegativeButton(R.string.cancel, null)
 				.show();
 		CheckableLinearLayout multiple=alert.findViewById(R.id.multiple_choice);
 		CheckableLinearLayout single=alert.findViewById(R.id.single_choice);
@@ -219,11 +212,9 @@ public class ComposePollViewController{
 		multiple.setChecked(pollIsMultipleChoice);
 		View.OnClickListener listener=v->{
 			int id=v.getId();
-			if(id==option[0])
-				return;
-			((Checkable) alert.findViewById(option[0])).setChecked(false);
-			((Checkable) v).setChecked(true);
-			option[0]=id;
+			pollIsMultipleChoice=id==R.id.multiple_choice;
+			pollStyleValue.setText(pollIsMultipleChoice ? R.string.compose_poll_multiple_choice : R.string.compose_poll_single_choice);
+			alert.dismiss();
 		};
 		single.setOnClickListener(listener);
 		multiple.setOnClickListener(listener);
@@ -356,6 +347,9 @@ public class ComposePollViewController{
 				pollOptions.remove(dpo);
 				pollOptionsView.removeView(view);
 				addPollOptionBtn.setEnabled(pollOptions.size()<maxPollOptions);
+				if(Build.VERSION.SDK_INT>=Build.VERSION_CODES.R){
+					UiUtils.playVibrationEffectIfSupported(fragment.getActivity(), VibrationEffect.Composition.PRIMITIVE_QUICK_RISE);
+				}
 				return;
 			}
 			ReorderableLinearLayout.OnDragListener.super.onDragEnd(view);

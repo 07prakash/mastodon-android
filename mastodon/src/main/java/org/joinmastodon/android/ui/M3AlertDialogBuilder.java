@@ -6,6 +6,7 @@ import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.Button;
+import android.widget.ListView;
 import android.widget.TextView;
 
 import org.joinmastodon.android.R;
@@ -49,6 +50,11 @@ public class M3AlertDialogBuilder extends AlertDialog.Builder{
 				helpButton.setSelected(helpText.getVisibility()==View.VISIBLE);
 			});
 			setCustomTitle(titleLayout);
+		}else if(!TextUtils.isEmpty(title)){
+			View titleLayout=getContext().getSystemService(LayoutInflater.class).inflate(R.layout.alert_title, null);
+			TextView title=titleLayout.findViewById(R.id.title);
+			title.setText(this.title);
+			setCustomTitle(titleLayout);
 		}
 
 		alert=super.create();
@@ -58,6 +64,12 @@ public class M3AlertDialogBuilder extends AlertDialog.Builder{
 			View buttonBar=(View) btn.getParent();
 			buttonBar.setPadding(V.dp(16), V.dp(16), V.dp(16), V.dp(16));
 			((View)buttonBar.getParent()).setPadding(0, 0, 0, 0);
+		}
+		if(btn==null || btn.getVisibility()==View.GONE){
+			ListView list=alert.getListView();
+			if(list!=null){
+				list.setPadding(list.getPaddingLeft(), list.getPaddingTop(), list.getPaddingRight(), V.dp(24));
+			}
 		}
 		// hacc
 		int titleID=getContext().getResources().getIdentifier("title_template", "id", "android");

@@ -81,7 +81,7 @@ public class ReportAddPostsChoiceFragment extends StatusListFragment{
 
 	@Override
 	protected void doLoadData(int offset, int count){
-		currentRequest=new GetAccountStatuses(reportAccount.id, offset>0 ? getMaxID() : null, null, count, GetAccountStatuses.Filter.OWN_POSTS_AND_REPLIES)
+		currentRequest=new GetAccountStatuses(reportAccount.id, offset>0 ? getMaxID() : null, null, count, GetAccountStatuses.Filter.OWN_POSTS_AND_REPLIES, null)
 				.setCallback(new SimpleCallback<>(this){
 					@Override
 					public void onSuccess(List<Status> result){
@@ -134,7 +134,7 @@ public class ReportAddPostsChoiceFragment extends StatusListFragment{
 	}
 
 	@Override
-	protected int getMainAdapterOffset(){
+	public int getMainAdapterOffset(){
 		return 1;
 	}
 
@@ -198,7 +198,7 @@ public class ReportAddPostsChoiceFragment extends StatusListFragment{
 
 	@Override
 	protected List<StatusDisplayItem> buildDisplayItems(Status s){
-		return StatusDisplayItem.buildItems(this, s, accountID, s, knownAccounts, StatusDisplayItem.FLAG_INSET | StatusDisplayItem.FLAG_NO_FOOTER | StatusDisplayItem.FLAG_CHECKABLE | StatusDisplayItem.FLAG_MEDIA_FORCE_HIDDEN);
+		return StatusDisplayItem.buildItems(this, s, accountID, s, knownAccounts, StatusDisplayItem.FLAG_NO_FOOTER | StatusDisplayItem.FLAG_CHECKABLE | StatusDisplayItem.FLAG_MEDIA_FORCE_HIDDEN);
 	}
 
 	@Override

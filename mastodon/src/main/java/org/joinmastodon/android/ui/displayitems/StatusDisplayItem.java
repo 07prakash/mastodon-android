@@ -8,8 +8,8 @@ import android.text.TextUtils;
 import android.view.View;
 import android.view.ViewGroup;
 
+import org.joinmastodon.android.GlobalUserPreferences;
 import org.joinmastodon.android.R;
-import org.joinmastodon.android.api.session.AccountSessionManager;
 import org.joinmastodon.android.fragments.BaseStatusListFragment;
 import org.joinmastodon.android.fragments.ThreadFragment;
 import org.joinmastodon.android.model.Account;
@@ -34,17 +34,18 @@ import me.grishka.appkit.views.UsableRecyclerView;
 
 public abstract class StatusDisplayItem{
 	public final String parentID;
-	public final BaseStatusListFragment parentFragment;
-	public boolean inset;
+	public final BaseStatusListFragment<?> parentFragment;
+	public boolean fullWidth; // aka "highlighted"
 	public int index;
 
-	public static final int FLAG_INSET=1;
+	public static final int FLAG_FULL_WIDTH=1;
 	public static final int FLAG_NO_FOOTER=1 << 1;
 	public static final int FLAG_CHECKABLE=1 << 2;
 	public static final int FLAG_MEDIA_FORCE_HIDDEN=1 << 3;
 	public static final int FLAG_NO_HEADER=1 << 4;
+	public static final int FLAG_NO_IN_REPLY_TO=1 << 5;
 
-	public StatusDisplayItem(String parentID, BaseStatusListFragment parentFragment){
+	public StatusDisplayItem(String parentID, BaseStatusListFragment<?> parentFragment){
 		this.parentID=parentID;
 		this.parentFragment=parentFragment;
 	}
@@ -68,8 +69,8 @@ public abstract class StatusDisplayItem{
 			case AUDIO -> new AudioStatusDisplayItem.Holder(activity, parent);
 			case POLL_OPTION -> new PollOptionStatusDisplayItem.Holder(activity, parent);
 			case POLL_FOOTER -> new PollFooterStatusDisplayItem.Holder(activity, parent);
-			case CARD_LARGE -> new LinkCardStatusDisplayItem.Holder(activity, parent, true);
-			case CARD_COMPACT -> new LinkCardStatusDisplayItem.Holder(activity, parent, false);
+			case CARD_LARGE -> new LinkCardStatusDisplayItem.Holder(activity, parent, true, ((BaseStatusListFragment<?>)parentFragment).getAccountID());
+			case CARD_COMPACT -> new LinkCardStatusDisplayItem.Holder(activity, parent, false, ((BaseStatusListFragment<?>)parentFragment).getAccountID());
 			case FOOTER -> new FooterStatusDisplayItem.Holder(activity, parent);
 			case ACCOUNT -> new AccountStatusDisplayItem.Holder(new AccountViewHolder(parentFragment, parent, null));
 			case HASHTAG -> new HashtagStatusDisplayItem.Holder(activity, parent);
@@ -79,30 +80,31 @@ public abstract class StatusDisplayItem{
 			case SPOILER, FILTER_SPOILER -> new SpoilerStatusDisplayItem.Holder(activity, parent, type);
 			case SECTION_HEADER -> new SectionHeaderStatusDisplayItem.Holder(activity, parent);
 			case NOTIFICATION_HEADER -> new NotificationHeaderStatusDisplayItem.Holder(activity, parent);
+			case INLINE_STATUS -> new InlineStatusStatusDisplayItem.Holder(activity, parent);
+			case NOTIFICATION_WITH_BUTTON -> new NotificationWithButtonStatusDisplayItem.Holder(activity, parent);
+			case FOLLOW_REQUEST_ACTIONS -> new FollowRequestActionsDisplayItem.Holder(activity, parent);
 		};
 	}
 
-	public static ArrayList<StatusDisplayItem> buildItems(BaseStatusListFragment fragment, Status status, String accountID, DisplayItemsParent parentObject, Map<String, Account> knownAccounts, boolean inset, boolean addFooter){
+	public static ArrayList<StatusDisplayItem> buildItems(BaseStatusListFragment<?> fragment, Status status, String accountID, DisplayItemsParent parentObject, Map<String, Account> knownAccounts, boolean addFooter){
 		int flags=0;
-		if(inset)
-			flags|=FLAG_INSET;
 		if(!addFooter)
 			flags|=FLAG_NO_FOOTER;
 		return buildItems(fragment, status, accountID, parentObject, knownAccounts, flags);
 	}
 
-	public static ArrayList<StatusDisplayItem> buildItems(BaseStatusListFragment fragment, Status status, String accountID, DisplayItemsParent parentObject, Map<String, Account> knownAccounts, int flags){
+	public static ArrayList<StatusDisplayItem> buildItems(BaseStatusListFragment<?> fragment, Status status, String accountID, DisplayItemsParent parentObject, Map<String, Account> knownAccounts, int flags){
 		String parentID=parentObject.getID();
 		ArrayList<StatusDisplayItem> items=new ArrayList<>();
 		Status statusForContent=status.getContentStatus();
 		HeaderStatusDisplayItem header=null;
-		boolean hideCounts=!AccountSessionManager.get(accountID).getLocalPreferences().showInteractionCounts;
+		boolean hideCounts=!GlobalUserPreferences.showInteractionCounts;
 		if((flags & FLAG_NO_HEADER)==0){
 			if(status.reblog!=null){
-				items.add(new ReblogOrReplyLineStatusDisplayItem(parentID, fragment, fragment.getString(R.string.user_boosted, status.account.displayName), status.account.emojis, R.drawable.ic_repeat_20px));
-			}else if(status.inReplyToAccountId!=null && knownAccounts.containsKey(status.inReplyToAccountId)){
+				items.add(new ReblogOrReplyLineStatusDisplayItem(parentID, fragment, fragment.getString(R.string.user_boosted), status.account, R.drawable.ic_repeat_wght700_20px));
+			}else if(status.inReplyToAccountId!=null && knownAccounts.containsKey(status.inReplyToAccountId) && (flags & FLAG_NO_IN_REPLY_TO)==0){
 				Account account=Objects.requireNonNull(knownAccounts.get(status.inReplyToAccountId));
-				items.add(new ReblogOrReplyLineStatusDisplayItem(parentID, fragment, fragment.getString(R.string.in_reply_to, account.displayName), account.emojis, R.drawable.ic_reply_20px));
+				items.add(new ReblogOrReplyLineStatusDisplayItem(parentID, fragment, fragment.getString(R.string.in_reply_to), account, R.drawable.ic_reply_wght700_20px));
 			}
 			if((flags & FLAG_CHECKABLE)!=0)
 				items.add(header=new CheckableHeaderStatusDisplayItem(parentID, statusForContent.account, statusForContent.createdAt, fragment, accountID, statusForContent, null));
@@ -120,28 +122,31 @@ public abstract class StatusDisplayItem{
 			}
 		}
 
-		ArrayList<StatusDisplayItem> contentItems;
+		ArrayList<StatusDisplayItem> contentItems=items;
+		ArrayList<StatusDisplayItem> cwParentItems=items;
+		boolean needAddCWItems=false;
 		if(filtered){
-			SpoilerStatusDisplayItem spoilerItem=new SpoilerStatusDisplayItem(parentID, fragment, fragment.getString(R.string.post_matches_filter_x, status.filtered.get(0).filter.title), status, statusForContent, Type.FILTER_SPOILER);
-			items.add(spoilerItem);
+			SpoilerStatusDisplayItem spoilerItem=new SpoilerStatusDisplayItem(parentID, fragment, fragment.getString(R.string.post_matches_filter_x, status.filtered.get(0).filter.title), status, statusForContent, Type.FILTER_SPOILER, Status.SpoilerType.FILTER);
+			contentItems.add(spoilerItem);
 			contentItems=spoilerItem.contentItems;
-			status.spoilerRevealed=false;
-		}else if(!TextUtils.isEmpty(statusForContent.spoilerText)){
-			SpoilerStatusDisplayItem spoilerItem=new SpoilerStatusDisplayItem(parentID, fragment, null, status, statusForContent, Type.SPOILER);
-			items.add(spoilerItem);
+			cwParentItems=contentItems;
+		}
+		if(!TextUtils.isEmpty(statusForContent.spoilerText)){
+			SpoilerStatusDisplayItem spoilerItem=new SpoilerStatusDisplayItem(parentID, fragment, null, status, statusForContent, Type.SPOILER, Status.SpoilerType.CONTENT_WARNING);
+			contentItems.add(spoilerItem);
 			contentItems=spoilerItem.contentItems;
-			status.spoilerRevealed=!AccountSessionManager.get(accountID).getLocalPreferences().showCWs;
-		}else{
-			contentItems=items;
+			if(!GlobalUserPreferences.showCWs && !filtered){
+				status.revealedSpoilers.add(Status.SpoilerType.CONTENT_WARNING);
+				needAddCWItems=true;
+			}
 		}
 
 		if(!TextUtils.isEmpty(statusForContent.content)){
-			SpannableStringBuilder parsedText=HtmlParser.parse(statusForContent.content, statusForContent.emojis, statusForContent.mentions, statusForContent.tags, accountID, statusForContent);
+			SpannableStringBuilder parsedText=HtmlParser.parse(statusForContent.content, statusForContent.emojis, statusForContent.mentions, statusForContent.tags, accountID, statusForContent, fragment.getActivity());
 			if(filtered){
 				HtmlParser.applyFilterHighlights(fragment.getActivity(), parsedText, status.filtered);
 			}
 			TextStatusDisplayItem text=new TextStatusDisplayItem(parentID, parsedText, fragment, statusForContent);
-			text.reduceTopPadding=header==null;
 			contentItems.add(text);
 		}else if(header!=null){
 			header.needBottomPadding=true;
@@ -151,10 +156,12 @@ public abstract class StatusDisplayItem{
 		if(!imageAttachments.isEmpty()){
 			PhotoLayoutHelper.TiledLayoutResult layout=PhotoLayoutHelper.processThumbs(imageAttachments);
 			MediaGridStatusDisplayItem mediaGrid=new MediaGridStatusDisplayItem(parentID, fragment, layout, imageAttachments, statusForContent);
-			if((flags & FLAG_MEDIA_FORCE_HIDDEN)!=0)
+			if((flags & FLAG_MEDIA_FORCE_HIDDEN)!=0){
 				mediaGrid.sensitiveTitle=fragment.getString(R.string.media_hidden);
-			else if(statusForContent.sensitive && !AccountSessionManager.get(accountID).getLocalPreferences().hideSensitiveMedia)
+				mediaGrid.sensitiveRevealed=false;
+			}else if(statusForContent.sensitive && !GlobalUserPreferences.hideSensitiveMedia){
 				mediaGrid.sensitiveRevealed=true;
+			}
 			contentItems.add(mediaGrid);
 		}
 		for(Attachment att:statusForContent.mediaAttachments){
@@ -168,8 +175,8 @@ public abstract class StatusDisplayItem{
 		if(statusForContent.card!=null && statusForContent.mediaAttachments.isEmpty() && TextUtils.isEmpty(statusForContent.spoilerText)){
 			contentItems.add(new LinkCardStatusDisplayItem(parentID, fragment, statusForContent));
 		}
-		if(contentItems!=items && status.spoilerRevealed){
-			items.addAll(contentItems);
+		if(needAddCWItems){
+			cwParentItems.addAll(contentItems);
 		}
 		if((flags & FLAG_NO_FOOTER)==0){
 			FooterStatusDisplayItem footer=new FooterStatusDisplayItem(parentID, fragment, statusForContent, accountID);
@@ -179,27 +186,26 @@ public abstract class StatusDisplayItem{
 				items.add(new GapStatusDisplayItem(parentID, fragment));
 		}
 		int i=1;
-		boolean inset=(flags & FLAG_INSET)!=0;
+		boolean fullWidth=(flags & FLAG_FULL_WIDTH)!=0;
 		for(StatusDisplayItem item:items){
-			item.inset=inset;
+			item.fullWidth=fullWidth;
 			item.index=i++;
 		}
 		if(items!=contentItems){
 			for(StatusDisplayItem item:contentItems){
-				item.inset=inset;
 				item.index=i++;
 			}
 		}
 		return items;
 	}
 
-	public static void buildPollItems(String parentID, BaseStatusListFragment fragment, Poll poll, Status status, List<StatusDisplayItem> items){
+	public static void buildPollItems(String parentID, BaseStatusListFragment<?> fragment, Poll poll, Status status, List<StatusDisplayItem> items){
 		int i=0;
 		for(Poll.Option opt:poll.options){
 			items.add(new PollOptionStatusDisplayItem(parentID, poll, i, fragment, status));
 			i++;
 		}
-		items.add(new PollFooterStatusDisplayItem(parentID, fragment, poll));
+		items.add(new PollFooterStatusDisplayItem(parentID, fragment, poll, status));
 	}
 
 	public enum Type{
@@ -221,10 +227,13 @@ public abstract class StatusDisplayItem{
 		SECTION_HEADER,
 		HEADER_CHECKABLE,
 		NOTIFICATION_HEADER,
-		FILTER_SPOILER
+		FILTER_SPOILER,
+		INLINE_STATUS,
+		NOTIFICATION_WITH_BUTTON,
+		FOLLOW_REQUEST_ACTIONS
 	}
 
-	public static abstract class Holder<T extends StatusDisplayItem> extends BindableViewHolder<T> implements UsableRecyclerView.DisableableClickable{
+	public static abstract class Holder<T> extends BindableViewHolder<T> implements UsableRecyclerView.DisableableClickable{
 		public Holder(View itemView){
 			super(itemView);
 		}
@@ -234,17 +243,18 @@ public abstract class StatusDisplayItem{
 		}
 
 		public String getItemID(){
-			return item.parentID;
+			return item instanceof StatusDisplayItem sdi ? sdi.parentID : null;
 		}
 
 		@Override
 		public void onClick(){
-			item.parentFragment.onItemClick(item.parentID);
+			if(item instanceof StatusDisplayItem sdi)
+				sdi.parentFragment.onItemClick(sdi.parentID);
 		}
 
 		@Override
 		public boolean isEnabled(){
-			return item.parentFragment.isItemEnabled(item.parentID);
+			return item instanceof StatusDisplayItem sdi && sdi.parentFragment.isItemEnabled(sdi.parentID);
 		}
 	}
 }

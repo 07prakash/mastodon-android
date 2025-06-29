@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<resources>
+<resources xmlns:tools="http://schemas.android.com/tools" tools:ignore="MissingTranslation">
 	<string name="log_in">Skrá inn</string>
 	<string name="next">Næsta</string>
 	<string name="loading_instance">Sæki upplýsingar um netþjón…</string>
@@ -9,13 +9,12 @@
 	<string name="preparing_auth">Undirbý auðkenningu…</string>
 	<string name="finishing_auth">Lýk auðkenningu…</string>
 	<string name="user_boosted">%s endurbirti</string>
-	<string name="in_reply_to">Sem svar til %s</string>
+	<string name="in_reply_to">sem svar til %s</string>
 	<string name="notifications">Tilkynningar</string>
 	<string name="user_followed_you">%s fylgist með þér</string>
 	<string name="user_sent_follow_request">%s sendi þér beiðni um að fylgjast með þér</string>
-	<string name="user_favorited">%s setti færsluna þína í eftirlæti</string>
-	<string name="notification_boosted">%s endurbirti færsluna þína</string>
-	<string name="poll_ended">Skoðaðu niðurstöður könnunar sem þú greiddir atkvæði í</string>
+	<string name="user_favorited">%s setti í eftirlæti:</string>
+	<string name="notification_boosted">%s endurbirti:</string>
 	<string name="share_toot_title">Deila</string>
 	<string name="settings">Stillingar</string>
 	<string name="publish">Birta</string>
@@ -37,7 +36,7 @@
 	<string name="button_follow">Fylgja</string>
 	<string name="button_following">Fylgist með</string>
 	<string name="edit_profile">Breyta notandasniði</string>
-	<string name="share_user">Deila notandasniði</string>
+	<string name="share_user">Deila notandasniði með…</string>
 	<string name="mute_user">Þagga niður í %s</string>
 	<string name="unmute_user">Afþagga %s</string>
 	<string name="block_user">Útiloka %s</string>
@@ -90,22 +89,11 @@
 		<item quantity="other">%,d atkvæði</item>
 	</plurals>
 	<string name="poll_closed">Lokið</string>
-	<string name="confirm_mute_title">Þagga niður í aðgangi</string>
-	<string name="confirm_mute">Staðfestu til að þagga niður í %s</string>
 	<string name="do_mute">Þagga niður</string>
-	<string name="confirm_unmute_title">Hætta að þagga niður í aðgangi</string>
-	<string name="confirm_unmute">Staðfestu til hætta að að þagga niður í %s</string>
-	<string name="do_unmute">Afþagga</string>
-	<string name="confirm_block_title">Útiloka notandaaðgang</string>
-	<string name="confirm_block_domain_title">Útiloka lén</string>
-	<string name="confirm_block">Staðfestu til að útiloka %s</string>
 	<string name="do_block">Útilokun</string>
-	<string name="confirm_unblock_title">Aflétta útilokun aðgangs</string>
-	<string name="confirm_unblock_domain_title">Aflétta útilokun léns</string>
-	<string name="confirm_unblock">Staðfestu til að hætta að útiloka %s</string>
-	<string name="do_unblock">Aflétta útilokun</string>
 	<string name="button_blocked">Útilokað</string>
 	<string name="action_vote">Greiða atkvæði</string>
+	<string name="confirm">Staðfesta</string>
 	<string name="delete">Eyða</string>
 	<string name="confirm_delete_title">Eyða færslu</string>
 	<string name="confirm_delete">Ertu viss um að þú viljir eyða þessari færslu?</string>
@@ -162,9 +150,8 @@
 	<string name="email">Tölvupóstfang</string>
 	<string name="password">Lykilorð</string>
 	<string name="confirm_password">Staðfestu lykilorðið</string>
-	<string name="password_note">Settu hástafi, sértákn og tölustafi til að auka styrk lykilorðins þíns.</string>
 	<string name="category_general">Almennt</string>
-	<string name="confirm_email_title">Athugaðu innhólfið þitt</string>
+	<string name="confirm_email_title">Athugaðu pósthólfið þitt</string>
 	<!-- %s is the email address -->
 	<string name="confirm_email_subtitle">Ýttu á tengilinn sem við sendum þér til að staðfesta %s. Við bíðum á meðan.</string>
 	<string name="confirm_email_didnt_get">Fékkstu ekki neinn tengil?</string>
@@ -174,12 +161,11 @@
 	<string name="compose_hint">Skrifaðu eða límdu það sem þér liggur á hjarta</string>
 	<string name="content_warning">Viðvörun vegna efnis</string>
 	<string name="save">Vista</string>
-	<string name="add_alt_text">Bæta við ALT-varatexta</string>
+	<string name="add_alt_text">Bæta við hjálpartexta</string>
 	<string name="visibility_public">Opinbert</string>
-	<string name="visibility_followers_only">Einungis fylgjendur</string>
-	<string name="visibility_private">Aðeins fólk sem minnst er á</string>
+	<string name="visibility_followers_only">Fylgjendur</string>
+	<string name="visibility_private">Tilteknir aðilar</string>
 	<string name="recent_searches">Nýlegt</string>
-	<string name="skip">Sleppa</string>
 	<string name="notification_type_follow">Nýir fylgjendur</string>
 	<string name="notification_type_favorite">Eftirlæti</string>
 	<string name="notification_type_reblog">Endurbirtingar</string>
@@ -199,7 +185,7 @@
 	<string name="theme_dark">Dökkt</string>
 	<string name="settings_behavior">Hegðun</string>
 	<string name="settings_gif">Spila auðkennismyndir með hreyfingu</string>
-	<string name="settings_custom_tabs">Nota innbyggðan vafra forritsins</string>
+	<string name="settings_custom_tabs">Opna tengla í</string>
 	<string name="settings_notifications">Tilkynningar</string>
 	<string name="settings_contribute">Leggðu Mastodon lið</string>
 	<string name="settings_tos">Þjónustuskilmálar</string>
@@ -228,8 +214,8 @@
 	<string name="followed_user">Þú fylgist núna með %s</string>
 	<string name="following_user_requested">Bað um að fylgjast með %s</string>
 	<string name="open_in_browser">Opna í vafra</string>
-	<string name="hide_boosts_from_user">Fela endurbirtingar frá %s</string>
-	<string name="show_boosts_from_user">Sýna endurbirtingar frá %s</string>
+	<string name="hide_boosts_from_user">Fela endurbirtingar</string>
+	<string name="show_boosts_from_user">Sýna endurbirtingar</string>
 	<string name="signup_reason">Hvers vegna vilt þú taka þátt?</string>
 	<string name="signup_reason_note">Þetta mun hjálpa okkur við að yfirfara umsóknina þína.</string>
 	<string name="clear">Hreinsa</string>
@@ -241,17 +227,15 @@
 	<string name="storage_permission_to_download">Forritið þarf aðgang að geymslurýminu þínu til að vista þessa skrá.</string>
 	<string name="open_settings">Opna stillingar</string>
 	<string name="error_saving_file">Villa við að vista skrána</string>
-	<string name="file_saved">Skrá vistuð</string>
 	<string name="downloading">Sæki…</string>
 	<string name="no_app_to_handle_action">Ekkert forrit fannst sem getur meðhöndlað þessa aðgerð</string>
-	<string name="local_timeline">Staðvært</string>
+	<string name="local_timeline">Bein streymi</string>
 	<string name="trending_posts_info_banner">Þetta eru færslurnar sem eru að fá aukna athygli á Mastodon.</string>
 	<string name="trending_links_info_banner">Þetta eru fréttirnar sem er verið að tala um á Mastodon.</string>
 	<!-- %s is the server domain -->
 	<string name="local_timeline_info_banner">Þetta eru allar færslur frá öllum notendum á netþjóninum þínum (%s).</string>
 	<string name="recommended_accounts_info_banner">Þú gætir einnig haft áhuga á þessum aðgöngum, miðað við hverjum þú ert að fylgjast með.</string>
 	<string name="see_new_posts">Nýjar færslur</string>
-	<string name="load_missing_posts">Hlaða inn færslum sem vantar</string>
 	<string name="follow_back">Fylgjast með til baka</string>
 	<string name="button_follow_pending">Í bið</string>
 	<string name="follows_you">Fylgist með þér</string>
@@ -308,8 +292,6 @@
 	<string name="file_size_mb">%.2f MB</string>
 	<string name="file_size_gb">%.2f GB</string>
 	<string name="upload_processing">Í vinnslu…</string>
-	<!-- %s is version like 1.2.3 -->
-	<!-- %s is version like 1.2.3 -->
 	<!-- %s is file size -->
 	<string name="download_update">Sækja (%s)</string>
 	<string name="install_update">Setja upp</string>
@@ -322,15 +304,14 @@
 	<string name="add_bookmark">Bókamerki</string>
 	<string name="remove_bookmark">Fjarlægja bókamerki</string>
 	<string name="bookmarks">Bókamerki</string>
-	<string name="your_favorites">Eftirlætin þín</string>
+	<string name="your_favorites">Eftirlæti</string>
 	<string name="login_title">Velkomin aftur</string>
 	<string name="login_subtitle">Skráðu þig inn á netþjóninn þar sem þú útbjóst notandaaðganginn þinn.</string>
 	<string name="server_url">Vefslóð netþjóns</string>
-	<string name="signup_random_server_explain">Við munum velja netþjón út frá tungumálinu þínu, ef þú heldur áfram án þess að velja neitt.</string>
 	<string name="server_filter_any_language">Hvaða tungumál sem er</string>
 	<string name="server_filter_instant_signup">Nýskráning á stundinni</string>
 	<string name="server_filter_manual_review">Handvirk yfirferð</string>
-	<string name="server_filter_any_signup_speed">Hvaða afgreiðsluhraði nýskráninga sem er</string>
+	<string name="server_filter_any_signup_speed">Hvaða hraði nýskráninga sem er</string>
 	<string name="server_filter_region_europe">Evrópa</string>
 	<string name="server_filter_region_north_america">Norður-Ameríka</string>
 	<string name="server_filter_region_south_america">Suður-Ameríka</string>
@@ -340,11 +321,9 @@
 	<string name="not_accepting_new_members">Tekur ekki við nýjum meðlimum</string>
 	<string name="category_special_interests">Sérstök áhugamál</string>
 	<string name="signup_passwords_dont_match">Lykilorðin samsvara ekki</string>
-	<string name="pick_server_for_me">Velja fyrir mig</string>
 	<string name="profile_add_row">Bæta við röð</string>
 	<string name="profile_setup">Uppsetning notandasniðs</string>
 	<string name="profile_setup_subtitle">Þú getur alltaf klárað þetta síðar á notendasniðaflipanum.</string>
-	<string name="popular_on_mastodon">Vinsælt á Mastodon</string>
 	<string name="follow_all">Fylgjast með öllum</string>
 	<string name="server_rules_disagree">Ósammála</string>
 	<string name="privacy_policy_explanation">Athugaðu: Við söfnum ekki eða vinnum með neinar upplýsingar.</string>
@@ -398,10 +377,10 @@
 	<string name="compose_poll_multiple_choice">Margir valkostir</string>
 	<string name="delete_poll_option">Eyða valkosti úr könnun</string>
 	<string name="poll_style_title">Stíll könnunar</string>
-	<string name="alt_text">Alt-varatexti</string>
+	<string name="alt_text">Hjálpartexti mynda</string>
 	<string name="help">Hjálp</string>
-	<string name="what_is_alt_text">Hvað er alt-varatexti?</string>
-	<string name="alt_text_help">ALT-varatexti inniheldur lýsingu á myndefni fyrir fólk með ýmsar gerðir sjónskerðingar, fyrir tengingar með litla bandbreidd, eða til að gefa nánara samhengi fyrir myndefni.\n\nÞú getur með þessu bætt almennt aðgengi og aukið skilning á efni sem þú birtir með því að skrifa skýran, skorinortan og hlutlægan alt-texta til vara.\n\n<ul><li>Lýstu mikilvægum atriðum</li>\n<li>Hafðu yfirlit með þeim texta sem sést í myndum</li>\n<li>Notaðu eðlilega setningaskipan</li>\n<li>Forðastu óþarfar upplýsingar</li>\n<li>Leggðu áherslu á aðalatriði í flóknu myndefni (eins og línuritum eða landakortum)</li></ul></string>
+	<string name="what_is_alt_text">Hvað er hjálpartexti?</string>
+	<string name="alt_text_help">Hjálpartexti eða ALT-myndatexti inniheldur lýsingu á myndefni fyrir fólk með ýmsar gerðir sjónskerðingar, fyrir tengingar með litla bandbreidd, eða til að gefa nánara samhengi fyrir myndefni.\n\nÞú getur með þessu bætt almennt aðgengi og aukið skilning á efni sem þú birtir með því að skrifa skýran, skorinortan og hlutlægan alt-texta til vara.\n\n<ul><li>Lýstu mikilvægum atriðum</li>\n<li>Hafðu yfirlit með þeim texta sem sést í myndum</li>\n<li>Notaðu eðlilega setningaskipan</li>\n<li>Forðastu óþarfar upplýsingar</li>\n<li>Leggðu áherslu á aðalatriði í flóknu myndefni (eins og línuritum eða landakortum)</li></ul></string>
 	<string name="edit_post">Breyta færslu</string>
 	<string name="no_verified_link">Enginn staðfestur tengill</string>
 	<string name="compose_autocomplete_emoji_empty">Skoða tjáningartákn</string>
@@ -433,7 +412,7 @@
 	<!-- %s is the app name (Mastodon, key app_name). I made it a placeholder so everything Just Works™ with forks -->
 	<string name="about_app">Um %s</string>
 	<string name="default_post_language">Sjálfgefið tungumál færslu</string>
-	<string name="settings_alt_text_reminders">Bætta við áminningum vegna ALT-varatexta</string>
+	<string name="settings_alt_text_reminders">Bæta við áminningum vegna hjálpartexta</string>
 	<string name="settings_confirm_unfollow">Spyrja áður en hætt er að fylgjast með einhverjum</string>
 	<string name="settings_confirm_boost">Spyrja áður en endurbirting fer fram</string>
 	<string name="settings_confirm_delete_post">Spyrja áður en færslum er eytt</string>
@@ -487,20 +466,20 @@
 		<item quantity="one">fyrir %d klukkustund</item>
 		<item quantity="other">fyrir %d klukkustundum</item>
 	</plurals>
-	<string name="alt_text_reminder_title">Myndgögn vantar ALT-varatexta</string>
+	<string name="alt_text_reminder_title">Myndgögn vantar hjálpartexta</string>
 	<plurals name="alt_text_reminder_x_images">
-		<item quantity="one">%s myndanna þinna vantar alt-varatexta. Birta samt?</item>
-		<item quantity="other">%s myndanna þinna vantar alt-varatexta. Birta samt?</item>
+		<item quantity="one">%s myndina þína vantar hjálpartexta. Birta samt?</item>
+		<item quantity="other">%s myndanna þinna vantar hjálpartexta. Birta samt?</item>
 	</plurals>
 	<plurals name="alt_text_reminder_x_attachments">
-		<item quantity="one">%s margmiðlunarviðhengjanna þinna vantar alt-varatexta. Birta samt?</item>
-		<item quantity="other">%s margmiðlunarviðhengjanna þinna vantar alt-varatexta. Birta samt?</item>
+		<item quantity="one">%s margmiðlunarviðhengið þitt vantar hjálpartexta. Birta samt?</item>
+		<item quantity="other">%s margmiðlunarviðhengjanna þinna vantar hjálpartexta. Birta samt?</item>
 	</plurals>
 	<string name="count_one">Einn</string>
 	<string name="count_two">Tveir</string>
 	<string name="count_three">Þrír</string>
 	<string name="count_four">Fjórir</string>
-	<string name="alt_text_reminder_post_anyway">Færsla</string>
+	<string name="alt_text_reminder_post_anyway">Birta</string>
 	<!-- %s is the username -->
 	<string name="unfollow_confirmation">Hætta að fylgjast með %s?</string>
 	<string name="filter_active">Virkur</string>
@@ -609,7 +588,7 @@
 	<string name="remove">Fjarlægja</string>
 	<string name="add_list_member">Bæta við meðlimi</string>
 	<string name="search_among_people_you_follow">Leita meðal þeirra sem þú fylgist með</string>
-	<string name="add_user_to_list">Bæta á lista…</string>
+	<string name="add_user_to_list">Bæta við/fjarlægja úr listum…</string>
 	<string name="add_user_to_list_title">Bæta á lista</string>
 	<!-- %s is a username -->
 	<string name="manage_user_lists">Sýsla með lista sem %s birtist á</string>
@@ -630,5 +609,259 @@
 	<string name="manage_list_members">Sýsla með meðlimi listans</string>
 	<string name="list_no_members">Engir meðlimir ennþá</string>
 	<string name="list_find_users">Finndu notendur til að bæta við</string>
+	<string name="reply_to_user">Svara %s</string>
+	<string name="posted_at">Birt klukkan %s</string>
+	<string name="non_mutual_sheet_title">Halló, ný tenging!</string>
+	<string name="non_mutual_sheet_text">Það lítur út eins og þú sért að fara að svara einhverjum sem ekki er enn með sameiginlega tengingu við þig. Nú ætti að passa upp á fyrstu viðkynningu.</string>
+	<string name="got_it">Náði því</string>
+	<string name="dont_remind_again">Ekki minna mig aftur á þetta</string>
 	<!-- %s is a time interval ("5 months") -->
+	<string name="old_post_sheet_title">Þessi færsla er %s gömul</string>
+	<string name="old_post_sheet_text">Þú getur samt svarað, en ekki er víst að þetta skipti neinu máli lengur.</string>
+	<plurals name="x_months">
+		<item quantity="one">%,d mánaðar</item>
+		<item quantity="other">%,d mánaða</item>
+	</plurals>
+	<string name="more_than_two_years">meira en 2 ára</string>
+	<string name="non_mutual_title1">Sýndu virðingu og haltu þig við efnið</string>
+	<string name="non_mutual_text1">Gakktu úr skugga um að svarið þitt sé kurteislegt og viðeigandi.</string>
+	<string name="non_mutual_title2">Sýndu umhyggju</string>
+	<string name="non_mutual_text2">Jákvæður tónn verður alltaf þeginn með þökkum.</string>
+	<string name="non_mutual_title3">Vertu opin/n</string>
+	<string name="non_mutual_text3">Samræðustíll hvers og eins er einstakur. Vertu tilbúin/n að aðlaga þig.</string>
+	<string name="make_profile_discoverable">Gera notandasniðið mitt finnanlegt</string>
+	<string name="discoverability">Finnanleiki</string>
+	<string name="discoverability_help">Þegar þú kýst finnanleika á Mastodon, munu færslurnar þínar birtast í leitarniðurstöðum og vinsældalistum.\n\nStungið verður upp á notandasniðinu þínu við fólk með svipuð áhugamál og þú hefur.\n\nKjósir þú að vera ekki með, mun annað fólk geta fundið þig með nafninu þínu.</string>
+	<string name="app_version_copied">Útgáfunúmer afritað á klippispjald</string>
+	<string name="onboarding_recommendations_intro">Þú ræktar heimastreymið þitt.
+ Því fleira fólki sem þú fylgist með, því virkara og áhugaverðara verður það.</string>
+	<string name="onboarding_recommendations_title">Aðlagaðu heimastreymið þitt eftir þínu höfði</string>
+	<string name="article_by_author">Frá %s</string>
+	<string name="button_reblogged">Endurbirt</string>
+	<string name="button_favorited">Sett í eftirlæti</string>
+	<string name="join_server_x_with_invite">Taka þátt í %s með boðstengli</string>
+	<string name="expired_invite_link">Útrunninn boðstengill</string>
+	<string name="expired_clipboard_invite_link_alert">Boðstengillinn á klippispjaldinu þínu fyrir %1$s er útrunninn og því ekki hægt að nota hann til nýskráningar.\n\nÞú getur beðið um nýjan boðstengil frá fyrirliggjandi þátttakanda, nýskráð þig í gegnum %2$s, eða valið annan netþjón til að skrá þig á.</string>
+	<string name="invalid_invite_link">Ógildur boðstengill</string>
+	<string name="invalid_clipboard_invite_link_alert">Boðstengillinn á klippispjaldinu þínu fyrir %1$s er ógildur og því ekki hægt að nota hann til nýskráningar.\n\nÞú getur beðið um nýjan boðstengil frá fyrirliggjandi þátttakanda, nýskráð þig í gegnum %2$s, eða valið annan netþjón til að skrá þig á.</string>
+	<string name="use_invite_link">Nota boðstengil</string>
+	<string name="enter_invite_link">Settu inn boðstengil</string>
+	<string name="this_invite_is_invalid">Þessi boðstengill er ekki gildur.</string>
+	<string name="this_invite_has_expired">Þessi boðstengill er útrunninn.</string>
+	<string name="invite_link_pasted">Tengill afritaður af klippispjaldinu þínu.</string>
+	<string name="need_invite_to_join_server">Til að ganga til liðs við %s þarftu boðstengil frá einhverjum sem þegar er þátttakandi.</string>
+	<string name="mute_user_confirm_title">Þagga niður í notanda?</string>
+	<string name="user_wont_know_muted">Viðkomandi aðilar munu ekki vita að þaggað hefur verið niður í þeim.</string>
+	<string name="user_can_still_see_your_posts">Viðkomandi geta áfram séð færslurnar þínar en þú munt ekki sjá færslurnarþeirra.</string>
+	<string name="you_wont_see_user_mentions">Þú munt ekki sjá færslur sem minnast á viðkomandi aðila.</string>
+	<string name="user_can_mention_and_follow_you">Viðkomandi geta minnst á þig og fylgst með þér, en þú munt ekki sjá þá.</string>
+	<string name="unmuted_user_x">Afþaggaði %s</string>
+	<string name="block_user_confirm_title">Útiloka notanda?</string>
+	<string name="user_can_see_blocked">Viðkomandi geta séð að þeir eru útilokaðir.</string>
+	<string name="user_cant_see_each_other_posts">Viðkomandi geta ekki séð færslurnar þínar og þú ekki þeirra.</string>
+	<string name="user_cant_mention_or_follow_you">Viðkomandi geta ekki minnst á þig eða fylgst með þér.</string>
+	<string name="unblocked_user_x">Aflétti útilokun af %s</string>
+	<string name="block_domain_confirm_title">Útiloka lén?</string>
+	<string name="do_block_server">Útiloka netþjón?</string>
+	<string name="block_user_x_instead">Útiloka %s í staðinn</string>
+	<string name="users_cant_see_blocked">Þú munt ekki sjá neinar færslur eða tilkynningar frá notendum á þessum netþjóni.</string>
+	<string name="you_wont_see_server_posts">Þú munt ekki sjá neinar færslur frá notendum á þessum netþjóni.</string>
+	<string name="server_cant_mention_or_follow_you">Enginn frá þessum netþjóni getur fylgst með þér.</string>
+	<string name="server_can_interact_with_older">Fólk frá þessum netþjóni getur sýslað með eldri færslur þínar.</string>
+	<string name="unblocked_domain_x">Aflétti útilokun af léninu %s</string>
+	<string name="handle_help_title">Hvað er í kennislóð (handle)?</string>
+	<string name="handle_title">Kennislóðin þeirra</string>
+	<string name="handle_username_explanation">Sértækt auðkenni viðkomandi á netþjóni hans. Það er mögulegt að finna notendur með sama notandanafn á mismunandi netþjónum.</string>
+	<string name="handle_title_own">Kennislóðin þín</string>
+	<string name="handle_username_explanation_own">Sértækt auðkenni þitt á þessum netþjóni. Það er mögulegt að finna notendur með sama notandanafn á mismunandi netþjónum.</string>
+	<string name="server">Netþjónn</string>
+	<string name="handle_server_explanation">Stafrænt heimili viðkomandi, þar sem allar færslur hans eru hýstar.</string>
+	<string name="handle_explanation">Vegna þess að kennislóðir segja hver einhver sé og hvar hann sé að finna, getur þú átt í samskiptum við fólk í gegnum samfélagsvef sem knúinn er af &lt;a&gt;ActivityPub-samhæfðum kerfum&lt;/a&gt;.</string>
+	<string name="handle_server_explanation_own">Stafrænt heimili þitt, þar sem allar færslur þínar eru hýstar. Kanntu ekki við þennan netþjón? Þú getur flutt þig á milli netþjóna hvenær sem er og tekið með þér alla fylgjendurna þína.</string>
+	<string name="handle_explanation_own">Vegna þess að kennislóðin þín segir hver þú sért og hvar þig sé að finna, getur fólk átt í samskiptum við þig í gegnum samfélagsvef sem knúinn er af &lt;a&gt;ActivityPub-samhæfðum kerfum&lt;/a&gt;.</string>
+	<string name="what_is_activitypub_title">Hvað er ActivityPub?</string>
+	<string name="what_is_activitypub">ActivityPub má líkja við að vera tungumálið sem Mastodon notar til að tala við önnur samfélagsnet.\n\nÞað gerir þér kleift að tengjast og eiga í samskiptum við annað fólk, ekki bara á Mastodon, heldur einnig í mörgum öðrum samfélagsmiðlaforritum.</string>
+	<string name="handle_copied">Kennislóð afrituð á klippispjald.</string>
+	<string name="qr_code">QR-kóði</string>
+	<string name="scan_qr_code">Skanna QR-kóða</string>
+	<!-- Shown on a button that saves a file, after it was successfully saved -->
+	<string name="saved">Vistað</string>
+	<string name="image_saved">Mynd vistuð.</string>
+	<string name="video_saved">Myndskeið vistað.</string>
+	<string name="view_file">Skoða</string>
+	<string name="share_sheet_preview_profile">%s á Mastodon</string>
+	<string name="share_sheet_preview_post">%1$s á Mastodon: “%2$s”</string>
+	<string name="copy_profile_link">Afrita tengil í notandasnið</string>
+	<string name="in_app_browser">Skoðari forrits</string>
+	<string name="system_browser">Skoðari kerfis</string>
+	<string name="add_muted_word_short">Bæta við orði</string>
+	<string name="tab_home">Heim</string>
+	<string name="tab_search">Kanna</string>
+	<string name="tab_profile">Notandasnið</string>
+	<string name="pin_post">Festa á notandasnið</string>
+	<string name="unpin_post">Losa af notandasniði</string>
+	<string name="post_pinned">Færslan hefur verið fest</string>
+	<string name="post_unpinned">Færslan hefur verið losuð</string>
+	<!-- %s is the username -->
+	<string name="enable_new_post_notifications">Láta mig vita þegar %s sendir inn</string>
+	<string name="disable_new_post_notifications">Hætta að láta mig vita þegar %s sendir inn</string>
+	<string name="new_post_notifications_enabled">Þú munt fá tilkynningar um nýjar færslur.</string>
+	<string name="new_post_notifications_disabled">Þú munt ekki lengur fá tilkynningar um nýjar færslur.</string>
+	<string name="mute_conversation">Þagga niður í samtali</string>
+	<string name="unmute_conversation">Hætta að þagga niður í samtali</string>
+	<string name="visibility_unlisted">Hljóðlátt opinbert</string>
+	<string name="filtered_notifications">Síaðar tilkynningar</string>
+	<string name="filter_notifications">Sía út tilkynningar frá...</string>
+	<string name="notification_filter_following">Fólk sem þú fylgist ekki með</string>
+	<string name="notification_filter_following_explanation">Þar til þú samþykkir viðkomandi handvirkt</string>
+	<string name="notification_filter_followers">Fólk sem fylgist ekki með þér</string>
+	<string name="notification_filter_followers_explanation">Að meðtöldum þeim sem hafa verið að fylgjast með þér í minna en 3 daga</string>
+	<string name="notification_filter_new_accounts">Nýir notendur</string>
+	<string name="notification_filter_new_accounts_explanation">Útbúnar síðustu 30 daga</string>
+	<string name="notification_filter_mentions">Óumbeðið einkaspjall</string>
+	<string name="notification_filter_mentions_explanation">Síað nema það sé í svari við einhverju þar sem þú minntist á viðkomandi eða ef þú fylgist með sendandanum</string>
+	<string name="allow_notifications">Leyfa tilkynningar</string>
+	<string name="mute_notifications">Hunsa beiðni um tilkynningu</string>
+	<plurals name="x_people_you_may_know">
+		<item quantity="one">%,d aðili sem þú gætir þekkt</item>
+		<item quantity="other">%,d aðilar sem þú gætir þekkt</item>
+	</plurals>
+	<string name="notifications_from_user">Tilkynningar frá %s</string>
+	<string name="notifications_muted">Tilkynningum frá %s hefur verið hafnað.</string>
+	<string name="notifications_allowed">%s mun núna birtast í tilkynningalistanum þínum.</string>
+	<string name="visibility_subtitle_public">Allir á Mastodon og víðar</string>
+	<string name="visibility_subtitle_unlisted">Minni stælar í reikniritum</string>
+	<string name="visibility_subtitle_followers">Einungis þeir sem fylgjast með þér</string>
+	<string name="visibility_subtitle_private">Allir sem minnst er á í færslunni</string>
+	<string name="view_boosts">Skoða endurbirtingar</string>
+	<string name="view_favorites">Skoða eftirlæti</string>
+	<string name="undo_reblog">Afturkalla endurbirtingu</string>
+	<string name="undo_favorite">Afturkalla eftirlæti</string>
+	<string name="could_not_reach_server">Náði ekki sambandi við netþjóninn. Athugaðu nettenginguna þína og prófaðu aftur?</string>
+	<string name="connection_timed_out">Beiðnin rann út á tíma. Athugaðu nettenginguna þína og prófaðu aftur?</string>
+	<string name="server_error">Eitthvað fór úrskeiðis í samskiptum við netþjóninn þinn. Líklega er það ekki þér að kenna. Prófa aftur?</string>
+	<string name="not_found">Kannski var honum eytt eða kannski var hann aldrei til.</string>
+	<string name="no_servers_found">Engir netþjónar fyndust fyrir “%s”</string>
+	<string name="signup_username_taken">Þetta notandanafn er frátekið. Prófaðu eitthvað annað eða &lt;a&gt;veldu annan netþjón&lt;/a&gt;.</string>
+	<string name="signup_email_invalid">Þetta lítur ekki út fyrir að vera leyfilegt tölvupóstfang.</string>
+	<string name="signup_email_taken">Tölvupóstfangið er þegar í notkun. &lt;a&gt;Gleymdirðu lykilorðinu þínu&lt;/a&gt;?</string>
+	<plurals name="x_new_notifications">
+		<item quantity="one">%,d ný tilkynning</item>
+		<item quantity="other">%,d nýjar tilkynningar</item>
+	</plurals>
+	<string name="dismiss">Hafna</string>
+	<string name="donation_once">Bara einu sinni</string>
+	<string name="donation_monthly">Mánaðarlega</string>
+	<string name="donation_yearly">Árlega</string>
+	<string name="currency">Gjaldmiðill</string>
+	<string name="donation_success_share">Láta þetta berast</string>
+	<string name="donation_success_title">Takk fyrir þitt framlag!</string>
+	<string name="donation_success_subtitle">Þú ættir að fá fljótlega tölvupóst með staðfestingu á framlginu þínu.</string>
+	<string name="donation_server_error">Því miður, villa kom upp og við höfum ekki getað meðhöndlað fjárframlagið þitt.\n\nPrófaðu aftur eftir nokkrar mínútur.</string>
+	<string name="settings_donate">Styrkja Mastodon</string>
+	<string name="settings_manage_donations">Sýsla með fjárframlög</string>
+	<string name="cant_load_image">Gat ekki hlaðið mynd inn</string>
+	<string name="poll_see_results">Skoða niðurstöður</string>
+	<string name="poll_hide_results">Fela niðurstöður</string>
+	<plurals name="x_attachments">
+		<item quantity="one">%d viðhengi</item>
+		<item quantity="other">%d viðhengi</item>
+	</plurals>
+	<plurals name="user_and_x_more_favorited">
+		<item quantity="one">%1$s og %2$,d í viðbót settu í eftirlæti:</item>
+		<item quantity="other">%1$s og %2$,d í viðbót settu í eftirlæti:</item>
+	</plurals>
+	<plurals name="user_and_x_more_boosted">
+		<item quantity="one">%1$s og %2$,d í viðbót endurbirtu:</item>
+		<item quantity="other">%1$s og %2$,d í viðbót endurbirtu:</item>
+	</plurals>
+	<plurals name="poll_ended_x_voters">
+		<item quantity="one">%1$s gerði könnun sem þú og %2$,d í viðbót tókuð þátt í</item>
+		<item quantity="other">%1$s gerði könnun sem þú og %2$,d í viðbót tókuð þátt í</item>
+	</plurals>
+	<string name="own_poll_ended">Könnuninni þinni er lokið</string>
+	<string name="user_just_posted">%s sendi inn rétt í þessu</string>
+	<string name="user_edited_post">%s breytti færslu sem þú áttir við</string>
+	<string name="relationship_severance_account_suspension">Stjórnandi á %1$s hefur fryst %2$s, sem þýðir að þú færð ekki lengur skilaboð frá viðkomandi né átt í samskiptum við viðkomandi.</string>
+	<!-- %1$s is your server domain, %2$s is the domain that was blocked, %3$,d is the follower count, %4$s is the `x_accounts` plural string -->
+	<string name="relationship_severance_domain_block">Stjórnandi á %1$s hefur lokað á %2$s, þar með talið á %3$,d fylgjendur þína og %4$s sem þú fylgist með.</string>
+	<plurals name="x_accounts">
+		<item quantity="one">%,d aðgangur</item>
+		<item quantity="other">%,d aðgangar</item>
+	</plurals>
+	<!-- %1$s is the domain that was blocked, %2$,d is the follower count, %3$s is the `x_accounts` plural string -->
+	<string name="relationship_severance_user_domain_block">Þú hefur lokað á %1$s, og þar með fjarlægt %2$,d fylgjendur þína og %3$s sem þú fylgist með.</string>
+	<string name="relationship_severance_learn_more">Kanna nánar</string>
+	<string name="moderation_warning_action_none">Aðgangurinn þinn hefur fengið aðvörun frá umsjónarmanni.</string>
+	<string name="moderation_warning_action_disable">Aðgangurinn þinn hefur verið gerður óvirkur.</string>
+	<string name="moderation_warning_action_mark_statuses_as_sensitive">Sumar færslurnar þínar hafa verið merktar sem viðkvæmt efni.</string>
+	<string name="moderation_warning_action_delete_statuses">Sumar færslurnar þínar hafa verið fjarlægðar.</string>
+	<string name="moderation_warning_action_sensitive">Færslur þínar verða héðan í frá merktar sem viðkvæmar.</string>
+	<string name="moderation_warning_action_silence">Notandaaðgangurinn þinn hefur verið takmarkaður.</string>
+	<string name="moderation_warning_action_suspend">Notandaaðgangurinn þinn hefur verið settur í frysti.</string>
+	<string name="moderation_warning_learn_more">Kanna nánar</string>
+	<string name="text_show_more">Meira</string>
+	<string name="avatar_move_and_scale">Færa og kvarða</string>
+	<string name="confirm_avatar_crop">Veldu</string>
+	<string name="settings_use_dynamic_colors">Nota breytilegan lit frá kerfinu</string>
+	<string name="settings_accounts">Aðgangar</string>
+	<string name="settings_add_account">Bæta við notandaaðgangi...</string>
+	<string name="settings_app_settings">Stillingar forrits</string>
+	<string name="account_settings">Stillingar aðgangs</string>
+	<string name="settings_about_this_server">Um þennan netþjón</string>
+	<string name="manage_account">Sýsla með notandaaðgang</string>
+	<string name="switch_to_this_account">Skipta yfir á þennan aðgang</string>
+	<string name="delete_account">Eyða notandaaðgangi</string>
+	<string name="notification_type_status">Nýjar færslur</string>
+	<plurals name="user_and_x_more_followed">
+		<item quantity="one">%1$s og %2$,d fór að fylgjast með þér</item>
+		<item quantity="other">%1$s og %2$,d fóru að fylgjast með þér</item>
+	</plurals>
+	<string name="familiar_followers_one">Fylgt af %s</string>
+	<string name="familiar_followers_two">Fylgt af %s og %s</string>
+	<string name="profile_saved_posts">Vistað</string>
+	<string name="profile_saved_posts_explanation">Vistaðar færslur þínar eru einungis sýnilegar þér.</string>
+	<string name="search_people">Fólk</string>
+	<plurals name="familiar_followers_many">
+		<item quantity="one">Fylgt af%1$s, %2$s, og %3$,d til viðbótar</item>
+		<item quantity="other">Fylgt af%1$s, %2$s, og %3$,d til viðbótar</item>
+	</plurals>
+	<plurals name="x_followers_you_know">
+		<item quantity="one">%,d fylgjandi sem þú þekkir</item>
+		<item quantity="other">%,d fylgjendur sem þú þekkir</item>
+	</plurals>
+	<!-- appears when you're about to block a server -->
+	<plurals name="server_x_followers_will_be_removed">
+		<item quantity="one">%,d fylgjandi af þessum netþjóni verður fjarlægður.</item>
+		<item quantity="other">%,d fylgjendur af þessum netþjóni verða fjarlægðir.</item>
+	</plurals>
+	<!-- The complete string will look like "You will lose X followers and Y people you follow". See will_lose_x_followers and will_lose_x_following -->
+	<string name="server_x_followers_and_following_will_be_removed">Þú munt tapa %1$s og %2$s.</string>
+	<plurals name="will_lose_x_followers">
+		<item quantity="one">%,d fylgjanda</item>
+		<item quantity="other">%,d fylgjendum</item>
+	</plurals>
+	<plurals name="will_lose_x_following">
+		<item quantity="one">%,d aðila sem þú fylgist með</item>
+		<item quantity="other">%,d aðilum sem þú fylgist með</item>
+	</plurals>
+	<!-- The complete string will look like "You will lose X people you follow". See will_lose_x_following -->
+	<string name="server_x_following_will_be_removed">Þú munt tapa %s.</string>
+	<string name="load_missing_posts_above">Hlaða færslum sem vantar fyrir ofan</string>
+	<string name="load_missing_posts_below">Hlaða færslum sem vantar fyrir neðan</string>
+	<string name="signup_password_too_short">Lykilorð þarf að vera a.m.k. 8 stafir.</string>
+	<string name="private_reply">Einkasvar</string>
+	<string name="private_mention">Einkaspjall</string>
+	<string name="post_header_reply">Svar</string>
+	<string name="post_header_mention">Minnst á</string>
+	<string name="report_reason_legal">Það er ólöglegt</string>
+	<string name="report_reason_legal_subtitle">Þú hefur trú um að það brjóti í bága við landslög þar sem vefþjónnin er hýstur</string>
+	<string name="date_of_birth">Fæðingardagur</string>
+	<!-- %s is `at_least_x_years_old`. Some languages, unlike English, may require the word "years" here. -->
+	<string name="date_of_birth_explanation">Við verðum að ganga úr skugga um að þú hafir náð %s aldri til að nota Mastodon. Við munum ekki geyma þessar upplýsingar eftir nýskráningu.</string>
+	<!-- Substituted into `date_of_birth_explanation` -->
+	<plurals name="at_least_x_years_old">
+		<item quantity="one">%d</item>
+		<item quantity="other">%d</item>
+	</plurals>
 </resources>

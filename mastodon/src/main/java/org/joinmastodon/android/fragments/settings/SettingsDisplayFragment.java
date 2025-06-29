@@ -13,14 +13,12 @@ import org.joinmastodon.android.E;
 import org.joinmastodon.android.GlobalUserPreferences;
 import org.joinmastodon.android.MastodonApp;
 import org.joinmastodon.android.R;
-import org.joinmastodon.android.api.session.AccountLocalPreferences;
-import org.joinmastodon.android.api.session.AccountSession;
-import org.joinmastodon.android.api.session.AccountSessionManager;
 import org.joinmastodon.android.events.StatusDisplaySettingsChangedEvent;
 import org.joinmastodon.android.model.viewmodel.CheckableListItem;
 import org.joinmastodon.android.model.viewmodel.ListItem;
 import org.joinmastodon.android.ui.M3AlertDialogBuilder;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.IntStream;
 
@@ -29,21 +27,26 @@ import me.grishka.appkit.FragmentStackActivity;
 public class SettingsDisplayFragment extends BaseSettingsFragment<Void>{
 	private ImageView themeTransitionWindowView;
 	private ListItem<Void> themeItem;
-	private CheckableListItem<Void> showCWsItem, hideSensitiveMediaItem, interactionCountsItem, emojiInNamesItem;
+	private CheckableListItem<Void> showCWsItem, hideSensitiveMediaItem, interactionCountsItem, emojiInNamesItem, dynamicColorsItem;
 
 	@Override
 	public void onCreate(Bundle savedInstanceState){
 		super.onCreate(savedInstanceState);
 		setTitle(R.string.settings_display);
-		AccountSession s=AccountSessionManager.get(accountID);
-		AccountLocalPreferences lp=s.getLocalPreferences();
-		onDataLoaded(List.of(
-				themeItem=new ListItem<>(R.string.settings_theme, getAppearanceValue(), R.drawable.ic_dark_mode_24px, this::onAppearanceClick),
-				showCWsItem=new CheckableListItem<>(R.string.settings_show_cws, 0, CheckableListItem.Style.SWITCH, lp.showCWs, R.drawable.ic_warning_24px, this::toggleCheckableItem),
-				hideSensitiveMediaItem=new CheckableListItem<>(R.string.settings_hide_sensitive_media, 0, CheckableListItem.Style.SWITCH, lp.hideSensitiveMedia, R.drawable.ic_no_adult_content_24px, this::toggleCheckableItem),
-				interactionCountsItem=new CheckableListItem<>(R.string.settings_show_interaction_counts, 0, CheckableListItem.Style.SWITCH, lp.showInteractionCounts, R.drawable.ic_social_leaderboard_24px, this::toggleCheckableItem),
-				emojiInNamesItem=new CheckableListItem<>(R.string.settings_show_emoji_in_names, 0, CheckableListItem.Style.SWITCH, lp.customEmojiInNames, R.drawable.ic_emoticon_24px, this::toggleCheckableItem)
-		));
+		List<ListItem<Void>> items=new ArrayList<>();
+		items.add(themeItem=new ListItem<>(R.string.settings_theme, getAppearanceValue(), R.drawable.ic_dark_mode_24px, this::onAppearanceClick));
+		if(Build.VERSION.SDK_INT>=Build.VERSION_CODES.S){
+			items.add(dynamicColorsItem=new CheckableListItem<>(R.string.settings_use_dynamic_colors, 0, CheckableListItem.Style.SWITCH, GlobalUserPreferences.useDynamicColors, R.drawable.ic_palette_24px, item->{
+				toggleCheckableItem(item);
+				setUseDynamicColors(item.checked);
+			}));
+			dynamicColorsItem.checkedChangeListener=this::setUseDynamicColors;
+		}
+		items.add(showCWsItem=new CheckableListItem<>(R.string.settings_show_cws, 0, CheckableListItem.Style.SWITCH, GlobalUserPreferences.showCWs, R.drawable.ic_warning_24px, this::toggleCheckableItem));
+		items.add(hideSensitiveMediaItem=new CheckableListItem<>(R.string.settings_hide_sensitive_media, 0, CheckableListItem.Style.SWITCH, GlobalUserPreferences.hideSensitiveMedia, R.drawable.ic_no_adult_content_24px, this::toggleCheckableItem));
+		items.add(interactionCountsItem=new CheckableListItem<>(R.string.settings_show_interaction_counts, 0, CheckableListItem.Style.SWITCH, GlobalUserPreferences.showInteractionCounts, R.drawable.ic_social_leaderboard_24px, this::toggleCheckableItem));
+		items.add(emojiInNamesItem=new CheckableListItem<>(R.string.settings_show_emoji_in_names, 0, CheckableListItem.Style.SWITCH, GlobalUserPreferences.customEmojiInNames, R.drawable.ic_emoticon_24px, this::toggleCheckableItem));
+		onDataLoaded(items);
 	}
 
 	@Override
@@ -62,13 +65,11 @@ public class SettingsDisplayFragment extends BaseSettingsFragment<Void>{
 	@Override
 	protected void onHidden(){
 		super.onHidden();
-		AccountSession s=AccountSessionManager.get(accountID);
-		AccountLocalPreferences lp=s.getLocalPreferences();
-		lp.showCWs=showCWsItem.checked;
-		lp.hideSensitiveMedia=hideSensitiveMediaItem.checked;
-		lp.showInteractionCounts=interactionCountsItem.checked;
-		lp.customEmojiInNames=emojiInNamesItem.checked;
-		lp.save();
+		GlobalUserPreferences.showCWs=showCWsItem.checked;
+		GlobalUserPreferences.hideSensitiveMedia=hideSensitiveMediaItem.checked;
+		GlobalUserPreferences.showInteractionCounts=interactionCountsItem.checked;
+		GlobalUserPreferences.customEmojiInNames=emojiInNamesItem.checked;
+		GlobalUserPreferences.save();
 		E.post(new StatusDisplaySettingsChangedEvent(accountID));
 	}
 
@@ -86,29 +87,34 @@ public class SettingsDisplayFragment extends BaseSettingsFragment<Void>{
 			case DARK -> 1;
 			case AUTO -> 2;
 		};
-		int[] newSelected={selected};
 		new M3AlertDialogBuilder(getActivity())
 				.setTitle(R.string.settings_theme)
 				.setSingleChoiceItems((String[])IntStream.of(R.string.theme_light, R.string.theme_dark, R.string.theme_auto).mapToObj(this::getString).toArray(String[]::new),
-						selected, (dlg, item)->newSelected[0]=item)
-				.setPositiveButton(R.string.ok, (dlg, item)->{
-					GlobalUserPreferences.ThemePreference pref=switch(newSelected[0]){
-						case 0 -> GlobalUserPreferences.ThemePreference.LIGHT;
-						case 1 -> GlobalUserPreferences.ThemePreference.DARK;
-						case 2 -> GlobalUserPreferences.ThemePreference.AUTO;
-						default -> throw new IllegalStateException("Unexpected value: "+newSelected[0]);
-					};
-					if(pref!=GlobalUserPreferences.theme){
-						GlobalUserPreferences.ThemePreference prev=GlobalUserPreferences.theme;
-						GlobalUserPreferences.theme=pref;
-						GlobalUserPreferences.save();
-						themeItem.subtitleRes=getAppearanceValue();
-						rebindItem(themeItem);
-						maybeApplyNewThemeRightNow(prev);
-					}
-				})
-				.setNegativeButton(R.string.cancel, null)
+						selected, (dlg, item)->{
+							GlobalUserPreferences.ThemePreference pref=switch(item){
+								case 0 -> GlobalUserPreferences.ThemePreference.LIGHT;
+								case 1 -> GlobalUserPreferences.ThemePreference.DARK;
+								case 2 -> GlobalUserPreferences.ThemePreference.AUTO;
+								default -> throw new IllegalStateException("Unexpected value: "+item);
+							};
+							if(pref!=GlobalUserPreferences.theme){
+								GlobalUserPreferences.ThemePreference prev=GlobalUserPreferences.theme;
+								GlobalUserPreferences.theme=pref;
+								GlobalUserPreferences.save();
+								themeItem.subtitleRes=getAppearanceValue();
+								rebindItem(themeItem);
+								maybeApplyNewThemeRightNow(prev);
+							}
+							dlg.dismiss();
+						})
 				.show();
+	}
+
+	private void setUseDynamicColors(boolean useDynamicColors){
+		dynamicColorsItem.checked=useDynamicColors;
+		GlobalUserPreferences.useDynamicColors=useDynamicColors;
+		GlobalUserPreferences.save();
+		restartActivityToApplyNewTheme();
 	}
 
 	private void maybeApplyNewThemeRightNow(GlobalUserPreferences.ThemePreference prev){

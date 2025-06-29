@@ -3,6 +3,7 @@ package org.joinmastodon.android;
 import android.Manifest;
 import android.app.Application;
 import android.app.Fragment;
+import android.app.assist.AssistContent;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.net.Uri;
@@ -16,6 +17,7 @@ import org.joinmastodon.android.api.ObjectValidationException;
 import org.joinmastodon.android.api.requests.search.GetSearchResults;
 import org.joinmastodon.android.api.session.AccountSession;
 import org.joinmastodon.android.api.session.AccountSessionManager;
+import org.joinmastodon.android.fragments.AssistContentProviderFragment;
 import org.joinmastodon.android.fragments.ComposeFragment;
 import org.joinmastodon.android.fragments.HomeFragment;
 import org.joinmastodon.android.fragments.ProfileFragment;
@@ -61,6 +63,7 @@ public class MainActivity extends FragmentStackActivity{
 	@Override
 	protected void onNewIntent(Intent intent){
 		super.onNewIntent(intent);
+		setIntent(intent);
 		if(intent.getBooleanExtra("fromNotification", false)){
 			String accountID=intent.getStringExtra("accountID");
 			AccountSession accountSession;
@@ -85,6 +88,8 @@ public class MainActivity extends FragmentStackActivity{
 			showCompose();
 		}else if(Intent.ACTION_VIEW.equals(intent.getAction())){
 			handleURL(intent.getData(), null);
+		}else if(intent.getBooleanExtra("explore", false)){
+			restartHomeFragment();
 		}/*else if(intent.hasExtra(PackageInstaller.EXTRA_STATUS) && GithubSelfUpdater.needSelfUpdating()){
 			GithubSelfUpdater.getInstance().handleIntentFromInstaller(intent, this);
 		}*/
@@ -152,6 +157,11 @@ public class MainActivity extends FragmentStackActivity{
 		}
 		fragment.setArguments(args);
 		showFragment(fragment);
+		Intent intent=getIntent();
+		intent.removeExtra("fromNotification");
+		intent.removeExtra("notification");
+		intent.removeExtra("accountID");
+		setIntent(intent);
 	}
 
 	private void showCompose(){
@@ -206,11 +216,26 @@ public class MainActivity extends FragmentStackActivity{
 				}
 			}else if(intent.getBooleanExtra("compose", false)){
 				showCompose();
+			}else if(intent.getBooleanExtra("explore", false) && fragment instanceof HomeFragment hf){
+				getWindow().getDecorView().post(()->hf.setCurrentTab(R.id.tab_search));
 			}else if(Intent.ACTION_VIEW.equals(intent.getAction())){
 				handleURL(intent.getData(), null);
 			}else{
 				maybeRequestNotificationsPermission();
 			}
+		}
+	}
+
+	public Fragment getTopmostFragment(){
+		if(fragmentContainers.isEmpty())
+			return null;
+		return getFragmentManager().findFragmentById(fragmentContainers.get(fragmentContainers.size()-1).getId());
+	}
+
+	@Override
+	public void onProvideAssistContent(AssistContent outContent){
+		if(getTopmostFragment() instanceof AssistContentProviderFragment provider){
+			provider.onProvideAssistContent(outContent);
 		}
 	}
 }

@@ -24,7 +24,8 @@ import org.joinmastodon.android.api.session.AccountSession;
 import org.joinmastodon.android.api.session.AccountSessionManager;
 import org.joinmastodon.android.fragments.settings.SettingsMainFragment;
 import org.joinmastodon.android.model.Account;
-import org.joinmastodon.android.ui.AccountSwitcherSheet;
+import org.joinmastodon.android.model.Instance;
+import org.joinmastodon.android.ui.sheets.AccountSwitcherSheet;
 import org.joinmastodon.android.ui.utils.UiUtils;
 
 import java.io.File;
@@ -131,7 +132,7 @@ public class AccountActivationFragment extends ToolbarFragment{
 	private void onOpenEmailClick(View v){
 		try{
 			startActivity(Intent.makeMainSelectorActivity(Intent.ACTION_MAIN, Intent.CATEGORY_APP_EMAIL).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK));
-		}catch(ActivityNotFoundException x){
+		}catch(ActivityNotFoundException|IllegalArgumentException x){
 			Toast.makeText(getActivity(), R.string.no_app_to_handle_action, Toast.LENGTH_SHORT).show();
 		}
 	}
@@ -149,7 +150,7 @@ public class AccountActivationFragment extends ToolbarFragment{
 							session.activationInfo.lastEmailConfirmationResend=System.currentTimeMillis();
 						}
 						lastResendTime=session.activationInfo.lastEmailConfirmationResend;
-						AccountSessionManager.getInstance().writeAccountsFile();
+						AccountSessionManager.getInstance().writeAccountActivationInfo(accountID);
 						updateResendTimer();
 					}
 
@@ -175,8 +176,9 @@ public class AccountActivationFragment extends ToolbarFragment{
 						currentRequest=null;
 						AccountSessionManager mgr=AccountSessionManager.getInstance();
 						AccountSession session=mgr.getAccount(accountID);
+						Instance instance=mgr.getInstanceInfo(session.domain);
 						mgr.removeAccount(accountID);
-						mgr.addAccount(mgr.getInstanceInfo(session.domain), session.token, result, session.app, null);
+						mgr.addAccount(instance, session.token, result, session.app, null);
 						String newID=mgr.getLastActiveAccountID();
 						accountID=newID;
 						if((session.self.avatar!=null || session.self.displayName!=null) && !getArguments().getBoolean("debug")){

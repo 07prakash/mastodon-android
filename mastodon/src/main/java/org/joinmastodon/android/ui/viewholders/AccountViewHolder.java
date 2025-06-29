@@ -3,8 +3,6 @@ package org.joinmastodon.android.ui.viewholders;
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.Fragment;
-import android.app.ProgressDialog;
-import android.content.Intent;
 import android.content.res.ColorStateList;
 import android.graphics.drawable.Animatable;
 import android.graphics.drawable.Drawable;
@@ -15,7 +13,6 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.ImageButton;
 import android.widget.ImageView;
@@ -235,10 +232,7 @@ public class AccountViewHolder extends BindableViewHolder<AccountViewModel> impl
 
 		int id=item.getItemId();
 		if(id==R.id.share){
-			Intent intent=new Intent(Intent.ACTION_SEND);
-			intent.setType("text/plain");
-			intent.putExtra(Intent.EXTRA_TEXT, account.url);
-			fragment.startActivity(Intent.createChooser(intent, item.getTitle()));
+			UiUtils.openSystemShareSheet(fragment.getActivity(), account);
 		}else if(id==R.id.mute){
 			UiUtils.confirmToggleMuteUser(fragment.getActivity(), accountID, account, relationship.muting, this::updateRelationship);
 		}else if(id==R.id.block){
@@ -252,12 +246,12 @@ public class AccountViewHolder extends BindableViewHolder<AccountViewModel> impl
 		}else if(id==R.id.open_in_browser){
 			UiUtils.launchWebBrowser(fragment.getActivity(), account.url);
 		}else if(id==R.id.block_domain){
-			UiUtils.confirmToggleBlockDomain(fragment.getActivity(), accountID, account.getDomain(), relationship.domainBlocking, ()->{
+			UiUtils.confirmToggleBlockDomain(fragment.getActivity(), accountID, account, relationship.domainBlocking, ()->{
 				relationship.domainBlocking=!relationship.domainBlocking;
 				bindRelationship();
-			});
+			}, this::updateRelationship);
 		}else if(id==R.id.hide_boosts){
-			new SetAccountFollowed(account.id, true, !relationship.showingReblogs)
+			new SetAccountFollowed(account.id, true, !relationship.showingReblogs, relationship.notifying)
 					.setCallback(new Callback<>(){
 						@Override
 						public void onSuccess(Relationship result){

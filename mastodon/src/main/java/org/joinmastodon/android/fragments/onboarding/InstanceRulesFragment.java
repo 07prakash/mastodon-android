@@ -12,7 +12,6 @@ import android.widget.TextView;
 
 import org.joinmastodon.android.R;
 import org.joinmastodon.android.model.Instance;
-import org.joinmastodon.android.ui.DividerItemDecoration;
 import org.joinmastodon.android.ui.adapters.InstanceRulesAdapter;
 import org.joinmastodon.android.ui.utils.UiUtils;
 import org.joinmastodon.android.utils.ElevationOnScrollListener;
@@ -58,7 +57,7 @@ public class InstanceRulesFragment extends ToolbarFragment{
 		list.setLayoutManager(new LinearLayoutManager(getActivity()));
 		View headerView=inflater.inflate(R.layout.item_list_header_simple, list, false);
 		TextView text=headerView.findViewById(R.id.text);
-		text.setText(Html.fromHtml(getString(R.string.instance_rules_subtitle, "<b>"+Html.escapeHtml(instance.uri)+"</b>")));
+		text.setText(Html.fromHtml(getString(R.string.instance_rules_subtitle, "<b>"+Html.escapeHtml(instance.getDomain())+"</b>")));
 
 		adapter=new MergeRecyclerAdapter();
 		adapter.addAdapter(new SingleViewRecyclerAdapter(headerView));
@@ -91,6 +90,9 @@ public class InstanceRulesFragment extends ToolbarFragment{
 	protected void onButtonClick(){
 		Bundle args=new Bundle();
 		args.putParcelable("instance", Parcels.wrap(instance));
+		if(getArguments().containsKey("inviteCode")){
+			args.putString("inviteCode", getArguments().getString("inviteCode"));
+		}
 		Nav.goForResult(getActivity(), GoogleMadeMeAddThisFragment.class, args, RULES_REQUEST, this);
 	}
 

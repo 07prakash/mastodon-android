@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<resources>
+<resources xmlns:tools="http://schemas.android.com/tools" tools:ignore="MissingTranslation">
 	<string name="log_in">تسجيلُ الدخول</string>
 	<string name="next">التالي</string>
 	<string name="loading_instance">جارٍ جلب معلومات الخادم…</string>
@@ -9,13 +9,9 @@
 	<string name="preparing_auth">جَارٍ الإعدَادُ لِلمُصادَقَة…</string>
 	<string name="finishing_auth">يُنهي المصادقة…</string>
 	<string name="user_boosted">قام %s بإعادة نشر</string>
-	<string name="in_reply_to">ردًا على %s</string>
 	<string name="notifications">الإشعارات</string>
 	<string name="user_followed_you">%s بَدَأ بِمُتابَعَتِك</string>
 	<string name="user_sent_follow_request">%s أرسَلَ طَلَبًا لِمُتابَعَتِك</string>
-	<string name="user_favorited">%s أعجَبه منشورك</string>
-	<string name="notification_boosted">قام %s بإعادة نشر منشورك</string>
-	<string name="poll_ended">الاطلاع على نتائج استطلاع الرأي الذي صوّت فيه</string>
 	<string name="share_toot_title">شارك</string>
 	<string name="settings">الإعدادات</string>
 	<string name="publish">نَشر</string>
@@ -39,13 +35,10 @@
 		<item quantity="other">متابَع</item>
 	</plurals>
 	<string name="posts">منشورات</string>
-	<string name="posts_and_replies">مَنشُوراتٌ وَرُدُود</string>
 	<string name="media">وسائط</string>
 	<string name="profile_about">حَول</string>
 	<string name="button_follow">تابِع</string>
 	<string name="button_following">مُتابَع</string>
-	<string name="edit_profile">تعديل الملف الشخصي</string>
-	<string name="share_user">شارك الصفحة الشخصية</string>
 	<string name="mute_user">كَتمُ %s</string>
 	<string name="unmute_user">إلغاء الكَتم عن @%s</string>
 	<string name="block_user">حَظرُ %s</string>
@@ -134,20 +127,8 @@
 		<item quantity="other">%,d صوتا</item>
 	</plurals>
 	<string name="poll_closed">مغلق</string>
-	<string name="confirm_mute_title">كتم الحساب</string>
-	<string name="confirm_mute">أكّد كتم %s</string>
 	<string name="do_mute">اكتم</string>
-	<string name="confirm_unmute_title">ارفع الكتم عن الحساب</string>
-	<string name="confirm_unmute">أكِّد رفع الكتم عن %s</string>
-	<string name="do_unmute">ارفع الكتم</string>
-	<string name="confirm_block_title">احجب الحساب</string>
-	<string name="confirm_block_domain_title">احجب النطاق</string>
-	<string name="confirm_block">أكّد حجب %s</string>
 	<string name="do_block">احجب</string>
-	<string name="confirm_unblock_title">ارفع الحجب عن الحساب</string>
-	<string name="confirm_unblock_domain_title">ارفع الحجب عن النطاق</string>
-	<string name="confirm_unblock">أكّد رفع الحجب عن %s</string>
-	<string name="do_unblock">ارفع الحجب</string>
 	<string name="button_blocked">محجوب</string>
 	<string name="action_vote">صَوّت</string>
 	<string name="delete">احذف</string>
@@ -202,17 +183,13 @@
 	<string name="report_personal_subtitle">فيما يلي خياراتك للتحكم بما يُعرَض عليك في ماستدون:</string>
 	<string name="back">العودة</string>
 	<string name="search_communities">اسم الخادم أو عنوان URL</string>
-	<string name="instance_rules_title">قواعد الخادم</string>
 	<string name="instance_rules_subtitle">من خلال المتابعة، أنت توافق على اتباع القواعد التالية التي تم تعيينها وإنفاذها من قبل مشرفي %s.</string>
-	<string name="signup_title">إنشاء حساب</string>
 	<string name="display_name">الاسم</string>
 	<string name="username">اسم المستخدم</string>
 	<string name="email">البريد الإلكتروني</string>
 	<string name="password">كلمة المرور</string>
 	<string name="confirm_password">تأكيد كلمة المرور</string>
-	<string name="password_note">ضمّن الأحرف الكبيرة والأحرف الخاصة والأرقام لزيادة قوة كلمة المرور.</string>
 	<string name="category_general">عام</string>
-	<string name="confirm_email_title">تحقق من صندوق الوارد الخاص بك</string>
 	<!-- %s is the email address -->
 	<string name="confirm_email_subtitle">اضغط على الرابط الذي أرسلناه إليك للتحقق من %s. سننتظر هنا.</string>
 	<string name="confirm_email_didnt_get">ألم تحصل على رابط؟</string>
@@ -224,10 +201,7 @@
 	<string name="save">احفظ</string>
 	<string name="add_alt_text">أضف نصًا بديلًا</string>
 	<string name="visibility_public">علني</string>
-	<string name="visibility_followers_only">للمُتابِعينَ فقط</string>
-	<string name="visibility_private">للمشار إليهم فقط</string>
 	<string name="recent_searches">الحديثة</string>
-	<string name="skip">تخطى</string>
 	<string name="notification_type_follow">متابعُون جُدُد</string>
 	<string name="notification_type_favorite">المفضلة</string>
 	<string name="notification_type_reblog">المعاد نشرها</string>
@@ -251,7 +225,6 @@
 	<string name="theme_dark">داكن</string>
 	<string name="settings_behavior">السلوك</string>
 	<string name="settings_gif">تشغيل الصور الرمزية المتحركة والرموز التعبيرية المتحركة</string>
-	<string name="settings_custom_tabs">استخدم المتصفح المضمن</string>
 	<string name="settings_notifications">الإشعارات</string>
 	<string name="settings_contribute">ساهم في ماستدون</string>
 	<string name="settings_tos">شروط الخدمة</string>
@@ -280,8 +253,6 @@
 	<string name="followed_user">أنت تتابع الآن %s</string>
 	<string name="following_user_requested">طَلَبَ %s مُتابَعتك</string>
 	<string name="open_in_browser">افتح في المتصفح</string>
-	<string name="hide_boosts_from_user">أخفِ المعاد نشرها مِن %s</string>
-	<string name="show_boosts_from_user">أظهر ما أعاد %s نشرَه</string>
 	<string name="signup_reason">لماذا تريد الانضمام؟</string>
 	<string name="signup_reason_note">هذا سوف يساعدنا في مراجعة تطبيقك.</string>
 	<string name="clear">امسح</string>
@@ -293,18 +264,14 @@
 	<string name="storage_permission_to_download">يحتاج هذا التطبيق أذن الوصول للتخزين لحفظ الملف.</string>
 	<string name="open_settings">افتح الإعدادات</string>
 	<string name="error_saving_file">خطأ أثناء حفظ الملف</string>
-	<string name="file_saved">حُفظ الملف</string>
 	<string name="downloading">ينزّل…</string>
 	<string name="no_app_to_handle_action">لا يوجد تطبيق لمعالجة هذا الإجراء</string>
-	<string name="local_timeline">المحلي</string>
 	<string name="trending_posts_info_banner">هذه هي المشاركات التي تكتسب شعبية عبر ماستدون.</string>
 	<string name="trending_links_info_banner">هذه هي القصص الإخبارية التي يُتحدّث عنها على ماستدون.</string>
 	<!-- %s is the server domain -->
 	<string name="local_timeline_info_banner">هذه هي جميع المشاركات من جميع المستخدمين في الخادم الخاص بك (%s).</string>
 	<string name="recommended_accounts_info_banner">قد تعجبك هذه الحسابات استنادا إلى حسابات أخرى تتابعها.</string>
 	<string name="see_new_posts">المنشورات الجديدة</string>
-	<string name="load_missing_posts">حمّل المَنشورات المَفقودَة</string>
-	<string name="follow_back">رُدّ المتابعة</string>
 	<string name="button_follow_pending">معلق</string>
 	<string name="follows_you">يُتابِعُك</string>
 	<string name="manually_approves_followers">الموافقة اليدوية على طلبات المتابعة</string>
@@ -384,29 +351,17 @@
 	<string name="file_size_mb">%.2f ميغابايت</string>
 	<string name="file_size_gb">%.2f جيجابايت</string>
 	<string name="upload_processing">قيد المعالجة…</string>
-	<!-- %s is version like 1.2.3 -->
-	<!-- %s is version like 1.2.3 -->
 	<!-- %s is file size -->
 	<string name="download_update">جارٍ التنزيل (%s)</string>
 	<string name="install_update">تثبيت</string>
-	<string name="privacy_policy_title">خصوصيتك</string>
 	<string name="privacy_policy_subtitle">على الرغم من أن تطبيق ماستدون لا يجمع أي بيانات، فإن الخادم الذي قمت بالتسجيل من خلاله قد تكون له سياسة مختلفة.\n\nإذا لم توافق على سياسة %s، يمكنك العودة واختيار خادم مختلف.</string>
-	<string name="i_agree">أنا مُوافِق</string>
 	<string name="empty_list">هذه القائمة فارغة</string>
 	<string name="instance_signup_closed">هذا الخادم لا يقبل التسجيلات الجديدة.</string>
 	<string name="text_copied">نُسِخ إلى الحافظة</string>
 	<string name="add_bookmark">إضافة إلى الفواصل المرجعية</string>
-	<string name="remove_bookmark">إزالة الفاصلة المرجعية</string>
 	<string name="bookmarks">الفواصل المرجعية</string>
-	<string name="your_favorites">مفضّلاتك</string>
-	<string name="login_title">مرحبا بك مجددًا</string>
 	<string name="login_subtitle">قم بتسجيل الدخول باستخدام الخادم حيث قمتَ بإنشاء حسابك فيه.</string>
 	<string name="server_url">رابط الخادم</string>
-	<string name="signup_random_server_explain">سوف نختار خادماً بناءً على لغتك إذا قمت بالمتابعة دون إجراء إختيار.</string>
-	<string name="server_filter_any_language">أي لغة</string>
-	<string name="server_filter_instant_signup">تسجيل فوري</string>
-	<string name="server_filter_manual_review">مراجعة يدوية</string>
-	<string name="server_filter_any_signup_speed">أي سرعة تسجيل</string>
 	<string name="server_filter_region_europe">أوروبا</string>
 	<string name="server_filter_region_north_america">أمريكا الشمالية</string>
 	<string name="server_filter_region_south_america">أمريكا الجنوبية</string>
@@ -414,13 +369,10 @@
 	<string name="server_filter_region_asia">آسيا</string>
 	<string name="server_filter_region_oceania">أوقيانوسيا</string>
 	<string name="not_accepting_new_members">لا يقبل  استقبال أعضاء جدد</string>
-	<string name="category_special_interests">المصالح الخاصة</string>
 	<string name="signup_passwords_dont_match">كلمات المرور غير متطابقة</string>
-	<string name="pick_server_for_me">اختر لي</string>
 	<string name="profile_add_row">إضافة صف</string>
 	<string name="profile_setup">إعداد الملف الشخصي</string>
 	<string name="profile_setup_subtitle">يمكنك دائماً إكمال هذا في وقت لاحق في علامة التبويب الملف الشخصي.</string>
-	<string name="popular_on_mastodon">مشهور على ماستدون</string>
 	<string name="follow_all">اتبع الكل</string>
 	<string name="server_rules_disagree">لا أوافق</string>
 	<string name="privacy_policy_explanation">بالمختصر: نحن لا نجمع أو نعالج أي شيء.</string>
@@ -693,14 +645,6 @@
 	<string name="settings_privacy">الخصوصية و الوصول</string>
 	<string name="settings_discoverable">ميزة الملف الشخصي والمشاركات في خوارزميات الاكتشاف</string>
 	<string name="settings_indexable">تضمين المشاركات العامة في نتائج البحث</string>
-	<plurals name="x_participants">
-		<item quantity="zero">لا مُشارِك</item>
-		<item quantity="one">مشارِك واحد</item>
-		<item quantity="two">مشاركَيْنِ</item>
-		<item quantity="few">مشاركين</item>
-		<item quantity="many">مُشارِكًا</item>
-		<item quantity="other">مُشارك</item>
-	</plurals>
 	<string name="error_playing_video">خطأ في تشغيل الفيديو</string>
 	<string name="timeline_following">الصفحة الرئيسية</string>
 	<string name="lists">القوائم</string>
@@ -725,7 +669,6 @@
 	<string name="remove">إزالة</string>
 	<string name="add_list_member">إضافة عضو</string>
 	<string name="search_among_people_you_follow">البحث بين الأشخاص الذين تتابعهم</string>
-	<string name="add_user_to_list">إضافة القائمة…</string>
 	<string name="add_user_to_list_title">إضافة إلى القائمة</string>
 	<!-- %s is a username -->
 	<string name="remove_from_list">إزالة من القائمة</string>
@@ -741,4 +684,13 @@
 	<string name="list_no_members">لا أعضاء حتى الآن</string>
 	<string name="list_find_users">البحث عن مستخدمين للإضافة</string>
 	<!-- %s is a time interval ("5 months") -->
+	<!-- Shown on a button that saves a file, after it was successfully saved -->
+	<!-- %s is the username -->
+	<!-- %1$s is your server domain, %2$s is the domain that was blocked, %3$,d is the follower count, %4$s is the `x_accounts` plural string -->
+	<!-- %1$s is the domain that was blocked, %2$,d is the follower count, %3$s is the `x_accounts` plural string -->
+	<!-- appears when you're about to block a server -->
+	<!-- The complete string will look like "You will lose X followers and Y people you follow". See will_lose_x_followers and will_lose_x_following -->
+	<!-- The complete string will look like "You will lose X people you follow". See will_lose_x_following -->
+	<!-- %s is `at_least_x_years_old`. Some languages, unlike English, may require the word "years" here. -->
+	<!-- Substituted into `date_of_birth_explanation` -->
 </resources>

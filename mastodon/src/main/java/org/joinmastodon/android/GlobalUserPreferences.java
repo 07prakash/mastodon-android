@@ -3,6 +3,7 @@ package org.joinmastodon.android;
 import android.content.Context;
 import android.content.SharedPreferences;
 
+import org.joinmastodon.android.api.session.AccountSession;
 import org.joinmastodon.android.api.session.AccountSessionManager;
 import org.joinmastodon.android.model.Account;
 
@@ -10,7 +11,12 @@ public class GlobalUserPreferences{
 	public static boolean playGifs;
 	public static boolean useCustomTabs;
 	public static boolean altTextReminders, confirmUnfollow, confirmBoost, confirmDeletePost;
-	public static ThemePreference theme;
+	public static ThemePreference theme=ThemePreference.AUTO;
+	public static boolean useDynamicColors;
+	public static boolean showInteractionCounts;
+	public static boolean customEmojiInNames;
+	public static boolean showCWs;
+	public static boolean hideSensitiveMedia;
 
 	private static SharedPreferences getPrefs(){
 		return MastodonApp.context.getSharedPreferences("global", Context.MODE_PRIVATE);
@@ -29,6 +35,24 @@ public class GlobalUserPreferences{
 		confirmBoost=prefs.getBoolean("confirmBoost", false);
 		confirmDeletePost=prefs.getBoolean("confirmDeletePost", true);
 		theme=ThemePreference.values()[prefs.getInt("theme", 0)];
+		useDynamicColors=prefs.getBoolean("useDynamicColors", true);
+		showInteractionCounts=prefs.getBoolean("interactionCounts", true);
+		customEmojiInNames=prefs.getBoolean("emojiInNames", true);
+		showCWs=prefs.getBoolean("showCWs", true);
+		hideSensitiveMedia=prefs.getBoolean("hideSensitive", true);
+		if(!prefs.getBoolean("perAccountMigrationDone", false)){
+			AccountSession account=AccountSessionManager.getInstance().getLastActiveAccount();
+			if(account!=null){
+				SharedPreferences accPrefs=account.getRawLocalPreferences();
+				showInteractionCounts=accPrefs.getBoolean("interactionCounts", true);
+				customEmojiInNames=accPrefs.getBoolean("emojiInNames", true);
+				showCWs=accPrefs.getBoolean("showCWs", true);
+				hideSensitiveMedia=accPrefs.getBoolean("hideSensitive", true);
+				save();
+			}
+			// Also applies to new app installs
+			prefs.edit().putBoolean("perAccountMigrationDone", true).apply();
+		}
 	}
 
 	public static void save(){
@@ -40,6 +64,11 @@ public class GlobalUserPreferences{
 				.putBoolean("confirmUnfollow", confirmUnfollow)
 				.putBoolean("confirmBoost", confirmBoost)
 				.putBoolean("confirmDeletePost", confirmDeletePost)
+				.putBoolean("useDynamicColors", useDynamicColors)
+				.putBoolean("interactionCounts", showInteractionCounts)
+				.putBoolean("emojiInNames", customEmojiInNames)
+				.putBoolean("showCWs", showCWs)
+				.putBoolean("hideSensitive", hideSensitiveMedia)
 				.apply();
 	}
 

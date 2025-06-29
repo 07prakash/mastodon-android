@@ -16,6 +16,11 @@ public class PhotoLayoutHelper{
 	public static final int MIN_HEIGHT=563;
 	public static final float GAP=1.5f;
 
+	public static final int CORNER_TL=1;
+	public static final int CORNER_TR=2;
+	public static final int CORNER_BL=4;
+	public static final int CORNER_BR=8;
+
 	@NonNull
 	public static TiledLayoutResult processThumbs(List<Attachment> thumbs){
 		float maxRatio=MAX_WIDTH/(float)MAX_HEIGHT;
@@ -33,8 +38,9 @@ public class PhotoLayoutHelper{
 				result.width=MAX_WIDTH;//Math.round(att.getWidth()/(float)att.getHeight()*MAX_HEIGHT);
 			}
 			result.tiles=new TiledLayoutResult.Tile[]{new TiledLayoutResult.Tile(1, 1, 0, 0)};
+			result.tiles[0].columnCount=result.tiles[0].rowCount=1;
 			return result;
-		}else if(thumbs.size()==0){
+		}else if(thumbs.isEmpty()){
 			throw new IllegalArgumentException("Empty thumbs array");
 		}
 
@@ -58,7 +64,7 @@ public class PhotoLayoutHelper{
 		float avgRatio=!ratios.isEmpty() ? sum(ratios)/ratios.size() : 1.0f;
 
 		if(cnt==2){
-			if(allAreWide && avgRatio>1.4*maxRatio && (ratios.get(1)-ratios.get(0))<0.2){ // two wide photos, one above the other
+			if(allAreWide && avgRatio>1.4*maxRatio && Math.abs(ratios.get(1)-ratios.get(0))<0.2){ // two wide photos, one above the other
 				float h=Math.max(Math.min(MAX_WIDTH/ratios.get(0), Math.min(MAX_WIDTH/ratios.get(1), (MAX_HEIGHT-GAP)/2.0f)), MIN_HEIGHT/2f);
 
 				result.width=MAX_WIDTH;
@@ -69,7 +75,23 @@ public class PhotoLayoutHelper{
 						new TiledLayoutResult.Tile(1, 1, 0, 0),
 						new TiledLayoutResult.Tile(1, 1, 0, 1)
 				};
-			}else if(allAreWide || allAreSquare){ // next to each other, same ratio
+			}else if(allAreWide){ // two wide photos, one above the other, different ratios
+				result.width=MAX_WIDTH;
+				float h0=MAX_WIDTH/ratios.get(0);
+				float h1=MAX_WIDTH/ratios.get(1);
+				if(h0+h1<MIN_HEIGHT){
+					float prevTotalHeight=h0+h1;
+					h0=MIN_HEIGHT*(h0/prevTotalHeight);
+					h1=MIN_HEIGHT*(h1/prevTotalHeight);
+				}
+				result.height=Math.round(h0+h1+GAP);
+				result.rowSizes=new int[]{Math.round(h0), Math.round(h1)};
+				result.columnSizes=new int[]{MAX_WIDTH};
+				result.tiles=new TiledLayoutResult.Tile[]{
+						new TiledLayoutResult.Tile(1, 1, 0, 0),
+						new TiledLayoutResult.Tile(1, 1, 0, 1)
+				};
+			}else if(allAreSquare){ // next to each other, same ratio
 				float w=((MAX_WIDTH-GAP)/2);
 				float h=Math.max(Math.min(w/ratios.get(0), Math.min(w/ratios.get(1), MAX_HEIGHT)), MIN_HEIGHT);
 
@@ -293,6 +315,11 @@ public class PhotoLayoutHelper{
 			result.height=Math.round(totalHeight+GAP*(optHeights.length-1));
 		}
 
+		for(TiledLayoutResult.Tile tile:result.tiles){
+			tile.columnCount=result.columnSizes.length;
+			tile.rowCount=result.rowSizes.length;
+		}
+
 		return result;
 	}
 
@@ -324,7 +351,7 @@ public class PhotoLayoutHelper{
 		}
 
 		public static class Tile{
-			public int colSpan, rowSpan, startCol, startRow;
+			public int colSpan, rowSpan, startCol, startRow, columnCount, rowCount;
 			public int width;
 
 			public Tile(int colSpan, int rowSpan, int startCol, int startRow){
@@ -347,6 +374,29 @@ public class PhotoLayoutHelper{
 						", startCol="+startCol+
 						", startRow="+startRow+
 						'}';
+			}
+
+			public int getRoundCornersMask(){
+				if(columnCount==1 && rowCount==1){ // Single attachment. All corners are rounded
+					return CORNER_TL | CORNER_TR | CORNER_BL | CORNER_BR;
+				}else if(colSpan==columnCount && startRow==0){ // Top attachment. Top corners are rounded
+					return CORNER_TL | CORNER_TR;
+				}else if(colSpan==columnCount && startRow==rowCount-1){ // Bottom attachment. Bottom corners are rounded
+					return CORNER_BL | CORNER_BR;
+				}else if(startCol==0 && startRow==0 && rowSpan==rowCount){ // Left attachment in a vertical layout
+					return CORNER_TL | CORNER_BL;
+				}else if(startCol==columnCount-1 && startRow==0 && rowSpan==rowCount){ // Right attachment
+					return CORNER_TR | CORNER_BR;
+				}else if(startCol==0 && startRow==0){ // Top left
+					return CORNER_TL;
+				}else if(startCol==columnCount-colSpan && startRow==0){ // Top right
+					return CORNER_TR;
+				}else if(startCol==0 && startRow==rowCount-rowSpan){ // Bottom left
+					return CORNER_BL;
+				}else if(startCol==columnCount-colSpan && startRow==rowCount-rowSpan){ // Bottom right
+					return CORNER_BR;
+				}
+				return 0;
 			}
 		}
 	}

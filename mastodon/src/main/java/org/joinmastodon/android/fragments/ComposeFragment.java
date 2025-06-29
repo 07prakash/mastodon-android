@@ -5,6 +5,7 @@ import android.animation.AnimatorSet;
 import android.animation.ObjectAnimator;
 import android.annotation.SuppressLint;
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.content.ClipData;
 import android.content.Intent;
 import android.content.res.Configuration;
@@ -22,6 +23,10 @@ import android.text.TextUtils;
 import android.text.TextWatcher;
 import android.text.style.BackgroundColorSpan;
 import android.text.style.ForegroundColorSpan;
+import android.transition.ChangeBounds;
+import android.transition.Fade;
+import android.transition.TransitionManager;
+import android.transition.TransitionSet;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -31,16 +36,16 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewOutlineProvider;
 import android.view.WindowManager;
+import android.view.accessibility.AccessibilityNodeInfo;
 import android.view.inputmethod.InputConnection;
 import android.view.inputmethod.InputMethodManager;
-import android.widget.Button;
 import android.widget.EditText;
 import android.widget.FrameLayout;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
-import android.widget.PopupMenu;
 import android.widget.ProgressBar;
+import android.widget.ScrollView;
 import android.widget.TextView;
 
 import com.twitter.twittertext.TwitterTextEmojiRegex;
@@ -65,10 +70,13 @@ import org.joinmastodon.android.model.Mention;
 import org.joinmastodon.android.model.Preferences;
 import org.joinmastodon.android.model.Status;
 import org.joinmastodon.android.model.StatusPrivacy;
+import org.joinmastodon.android.model.viewmodel.ListItem;
 import org.joinmastodon.android.ui.CustomEmojiPopupKeyboard;
+import org.joinmastodon.android.ui.ExtendedPopupMenu;
 import org.joinmastodon.android.ui.M3AlertDialogBuilder;
 import org.joinmastodon.android.ui.OutlineProviders;
 import org.joinmastodon.android.ui.PopupKeyboard;
+import org.joinmastodon.android.ui.displayitems.InlineStatusStatusDisplayItem;
 import org.joinmastodon.android.ui.drawables.SpoilerStripesDrawable;
 import org.joinmastodon.android.ui.text.ComposeAutocompleteSpan;
 import org.joinmastodon.android.ui.text.ComposeHashtagOrMentionSpan;
@@ -80,27 +88,32 @@ import org.joinmastodon.android.ui.viewcontrollers.ComposeLanguageAlertViewContr
 import org.joinmastodon.android.ui.viewcontrollers.ComposeMediaViewController;
 import org.joinmastodon.android.ui.viewcontrollers.ComposePollViewController;
 import org.joinmastodon.android.ui.views.ComposeEditText;
+import org.joinmastodon.android.ui.views.CustomScrollView;
+import org.joinmastodon.android.ui.views.NestedRecyclerScrollView;
 import org.joinmastodon.android.ui.views.SizeListenerLinearLayout;
+import org.joinmastodon.android.ui.views.TopBarsScrollAwayLinearLayout;
+import org.joinmastodon.android.utils.ViewImageLoaderHolderTarget;
 import org.parceler.Parcels;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import java.util.function.Consumer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+import androidx.annotation.NonNull;
 import me.grishka.appkit.Nav;
 import me.grishka.appkit.api.Callback;
 import me.grishka.appkit.api.ErrorResponse;
 import me.grishka.appkit.fragments.CustomTransitionsFragment;
-import me.grishka.appkit.fragments.OnBackPressedListener;
 import me.grishka.appkit.imageloader.ViewImageLoader;
 import me.grishka.appkit.imageloader.requests.UrlImageLoaderRequest;
 import me.grishka.appkit.utils.CubicBezierInterpolator;
 import me.grishka.appkit.utils.V;
 
-public class ComposeFragment extends MastodonToolbarFragment implements OnBackPressedListener, ComposeEditText.SelectionListener, CustomTransitionsFragment{
+public class ComposeFragment extends MastodonToolbarFragment implements ComposeEditText.SelectionListener, CustomTransitionsFragment{
 
 	private static final int MEDIA_RESULT=717;
 	public static final int IMAGE_DESCRIPTION_RESULT=363;
@@ -116,7 +129,7 @@ public class ComposeFragment extends MastodonToolbarFragment implements OnBackPr
 	@SuppressLint("NewApi") // this class actually exists on 6.0
 	private final BreakIterator breakIterator=BreakIterator.getCharacterInstance();
 
-	public LinearLayout mainLayout;
+	public TopBarsScrollAwayLinearLayout mainLayout;
 	private SizeListenerLinearLayout contentView;
 	private TextView selfName, selfUsername;
 	private ImageView selfAvatar;
@@ -129,8 +142,9 @@ public class ComposeFragment extends MastodonToolbarFragment implements OnBackPr
 	private int charCount, charLimit, trimmedCharCount;
 
 	private ImageButton mediaBtn, pollBtn, emojiBtn, spoilerBtn, languageBtn;
-	private TextView replyText;
-	private Button visibilityBtn;
+	private FrameLayout replyWrap;
+	private LinearLayout visibilityBtn;
+	private TextView visibilityText1, visibilityText2, visibilityCurrentText;
 	private LinearLayout bottomBar;
 	private View autocompleteDivider;
 
@@ -163,6 +177,11 @@ public class ComposeFragment extends MastodonToolbarFragment implements OnBackPr
 
 	private BackgroundColorSpan overLimitBG;
 	private ForegroundColorSpan overLimitFG;
+
+	private Runnable emojiKeyboardHider;
+	private Runnable sendingBackButtonBlocker=()->{};
+	private Runnable discardConfirmationCallback=this::confirmDiscardDraftAndFinish;
+	private boolean prevHadDraft;
 
 	public ComposeFragment(){
 		super(R.layout.toolbar_fragment_with_progressbar);
@@ -206,6 +225,9 @@ public class ComposeFragment extends MastodonToolbarFragment implements OnBackPr
 	public void onDestroy(){
 		super.onDestroy();
 		mediaViewController.cancelAllUploads();
+		removeBackCallback(emojiKeyboardHider);
+		removeBackCallback(sendingBackButtonBlocker);
+		removeBackCallback(discardConfirmationCallback);
 	}
 
 	@Override
@@ -240,6 +262,7 @@ public class ComposeFragment extends MastodonToolbarFragment implements OnBackPr
 				getActivity().dispatchKeyEvent(new KeyEvent(KeyEvent.ACTION_UP, KeyEvent.KEYCODE_DEL));
 			}
 		});
+		emojiKeyboardHider=emojiKeyboard::hide;
 
 		View view=inflater.inflate(R.layout.fragment_compose, container, false);
 		mainLayout=view.findViewById(R.id.compose_main_ll);
@@ -270,23 +293,42 @@ public class ComposeFragment extends MastodonToolbarFragment implements OnBackPr
 		emojiBtn=view.findViewById(R.id.btn_emoji);
 		spoilerBtn=view.findViewById(R.id.btn_spoiler);
 		visibilityBtn=view.findViewById(R.id.btn_visibility);
+		visibilityText1=view.findViewById(R.id.visibility_text1);
+		visibilityText2=view.findViewById(R.id.visibility_text2);
+		visibilityCurrentText=visibilityText1;
 		languageBtn=view.findViewById(R.id.btn_language);
-		replyText=view.findViewById(R.id.reply_text);
+		replyWrap=view.findViewById(R.id.reply_wrap);
 
-		mediaBtn.setOnClickListener(v->openFilePicker());
+		mediaBtn.setOnClickListener(v->openFilePicker(false));
+		if(UiUtils.isPhotoPickerAvailable()){
+			mediaBtn.setOnLongClickListener(v->{
+				openFilePicker(true);
+				return true;
+			});
+		}
 		pollBtn.setOnClickListener(v->togglePoll());
 		emojiBtn.setOnClickListener(v->emojiKeyboard.toggleKeyboardPopup(mainEditText));
 		spoilerBtn.setOnClickListener(v->toggleSpoiler());
 		languageBtn.setOnClickListener(v->showLanguageAlert());
 		visibilityBtn.setOnClickListener(this::onVisibilityClick);
+		visibilityBtn.setAccessibilityDelegate(new View.AccessibilityDelegate(){
+			@Override
+			public void onInitializeAccessibilityNodeInfo(@NonNull View host, @NonNull AccessibilityNodeInfo info){
+				super.onInitializeAccessibilityNodeInfo(host, info);
+				info.setClassName("android.widget.Spinner");
+			}
+		});
 		Drawable arrow=getResources().getDrawable(R.drawable.ic_baseline_arrow_drop_down_18, getActivity().getTheme()).mutate();
 		arrow.setTint(UiUtils.getThemeColor(getActivity(), R.attr.colorM3OnSurface));
-		visibilityBtn.setCompoundDrawablesRelativeWithIntrinsicBounds(null, null, arrow, null);
 		emojiKeyboard.setOnIconChangedListener(new PopupKeyboard.OnIconChangeListener(){
 			@Override
 			public void onIconChanged(int icon){
 				emojiBtn.setSelected(icon!=PopupKeyboard.ICON_HIDDEN);
 				updateNavigationBarColor(icon!=PopupKeyboard.ICON_HIDDEN);
+				if(icon!=PopupKeyboard.ICON_HIDDEN)
+					addBackCallback(emojiKeyboardHider);
+				else
+					removeBackCallback(emojiKeyboardHider);
 				if(autocompleteViewController.getMode()==ComposeAutocompleteViewController.Mode.EMOJIS){
 					contentView.layout(contentView.getLeft(), contentView.getTop(), contentView.getRight(), contentView.getBottom());
 					if(icon==PopupKeyboard.ICON_HIDDEN)
@@ -322,7 +364,7 @@ public class ComposeFragment extends MastodonToolbarFragment implements OnBackPr
 		if(editingStatus!=null && editingStatus.visibility!=null) {
 			statusVisibility=editingStatus.visibility;
 		}
-		updateVisibilityIcon();
+		updateVisibilityIcon(false);
 
 		autocompleteViewController=new ComposeAutocompleteViewController(getActivity(), accountID);
 		autocompleteViewController.setCompletionSelectedListener(new ComposeAutocompleteViewController.AutocompleteListener(){
@@ -352,6 +394,10 @@ public class ComposeFragment extends MastodonToolbarFragment implements OnBackPr
 		pollViewController.setView(view, savedInstanceState);
 		mediaViewController.setView(view, savedInstanceState);
 
+		NestedRecyclerScrollView outerScroller=view.findViewById(R.id.outer_scroller);
+		CustomScrollView innerScroller=view.findViewById(R.id.inner_scroller);
+		outerScroller.setScrollableChildSupplier(()->innerScroller);
+
 		creatingView=false;
 
 		return view;
@@ -375,6 +421,21 @@ public class ComposeFragment extends MastodonToolbarFragment implements OnBackPr
 	@Override
 	public void onResume(){
 		super.onResume();
+	}
+
+	@Override
+	protected void onHidden(){
+		super.onHidden();
+		if(prevHadDraft){
+			prevHadDraft=false;
+			removeBackCallback(discardConfirmationCallback);
+		}
+	}
+
+	@Override
+	protected void onShown(){
+		super.onShown();
+		updateDraftState();
 	}
 
 	@Override
@@ -462,11 +523,22 @@ public class ComposeFragment extends MastodonToolbarFragment implements OnBackPr
 				}
 
 				updateCharCounter();
+				updateDraftState();
 			}
 		});
 		spoilerEdit.addTextChangedListener(new SimpleTextWatcher(e->updateCharCounter()));
 		if(replyTo!=null){
-			replyText.setText(getString(R.string.in_reply_to, replyTo.account.displayName));
+			InlineStatusStatusDisplayItem item=new InlineStatusStatusDisplayItem("reply", this, replyTo, accountID, R.drawable.ic_reply_wght700_20px, getString(R.string.in_reply_to, replyTo.account.displayName));
+			item.fullWidth=true;
+			InlineStatusStatusDisplayItem.Holder holder=new InlineStatusStatusDisplayItem.Holder(getActivity(), replyWrap);
+			replyWrap.addView(holder.itemView);
+			holder.bind(item);
+			int imgCount=item.getImageCount();
+			for(int i=0;i<imgCount;i++){
+				ViewImageLoader.load(new ViewImageLoaderHolderTarget(holder, i), null, item.getImageRequest(i), false, true);
+			}
+//			mainLayout.setTopBarsCount(1);
+
 			ArrayList<String> mentions=new ArrayList<>();
 			String ownID=AccountSessionManager.getInstance().getAccount(accountID).self.id;
 			if(!replyTo.account.id.equals(ownID))
@@ -492,7 +564,8 @@ public class ComposeFragment extends MastodonToolbarFragment implements OnBackPr
 				}
 			}
 		}else{
-			replyText.setVisibility(View.GONE);
+			replyWrap.setVisibility(View.GONE);
+//			mainLayout.setTopBarsCount(0);
 		}
 		if(savedInstanceState==null){
 			if(editingStatus!=null){
@@ -501,7 +574,7 @@ public class ComposeFragment extends MastodonToolbarFragment implements OnBackPr
 				ignoreSelectionChanges=true;
 				mainEditText.setSelection(mainEditText.length());
 				ignoreSelectionChanges=false;
-				mediaViewController.onViewCreated(savedInstanceState);;
+				mediaViewController.onViewCreated(savedInstanceState);
 			}else{
 				String prefilledText=getArguments().getString("prefilledText");
 				if(!TextUtils.isEmpty(prefilledText)){
@@ -603,6 +676,7 @@ public class ComposeFragment extends MastodonToolbarFragment implements OnBackPr
 		if(publishButton==null)
 			return;
 		publishButton.setEnabled((trimmedCharCount>0 || !mediaViewController.isEmpty()) && charCount<=charLimit && mediaViewController.getNonDoneAttachmentCount()==0 && (pollViewController.isEmpty() || pollViewController.getNonEmptyOptionsCount()>1));
+		updateDraftState();
 	}
 
 	private void onCustomEmojiClick(Emoji emoji){
@@ -678,6 +752,7 @@ public class ComposeFragment extends MastodonToolbarFragment implements OnBackPr
 		overlayParams.softInputMode=WindowManager.LayoutParams.SOFT_INPUT_STATE_UNCHANGED;
 		overlayParams.token=mainEditText.getWindowToken();
 		wm.addView(sendingOverlay, overlayParams);
+		addBackCallback(sendingBackButtonBlocker);
 
 		publishButton.setEnabled(false);
 		V.setVisibilityAnimated(sendProgress, View.VISIBLE);
@@ -702,8 +777,11 @@ public class ComposeFragment extends MastodonToolbarFragment implements OnBackPr
 		if(!pollViewController.isEmpty()){
 			req.poll=pollViewController.getPollForRequest();
 		}
-		if(hasSpoiler && spoilerEdit.length()>0){
-			req.spoilerText=spoilerEdit.getText().toString();
+		if(hasSpoiler){
+			if(spoilerEdit.length()>0)
+				req.spoilerText=spoilerEdit.getText().toString();
+			else
+				req.sensitive=true;
 		}
 		if(postLang!=null){
 			req.language=postLang.locale.toLanguageTag();
@@ -716,6 +794,9 @@ public class ComposeFragment extends MastodonToolbarFragment implements OnBackPr
 			public void onSuccess(Status result){
 				wm.removeView(sendingOverlay);
 				sendingOverlay=null;
+				removeBackCallback(sendingBackButtonBlocker);
+				removeBackCallback(discardConfirmationCallback);
+				removeBackCallback(emojiKeyboardHider);
 				if(editingStatus==null){
 					E.post(new StatusCreatedEvent(result, accountID));
 					if(replyTo!=null){
@@ -748,6 +829,7 @@ public class ComposeFragment extends MastodonToolbarFragment implements OnBackPr
 	private void handlePublishError(ErrorResponse error){
 		wm.removeView(sendingOverlay);
 		sendingOverlay=null;
+		removeBackCallback(sendingBackButtonBlocker);
 		V.setVisibilityAnimated(sendProgress, View.GONE);
 		publishButton.setEnabled(true);
 		if(error instanceof MastodonErrorResponse me){
@@ -775,19 +857,16 @@ public class ComposeFragment extends MastodonToolbarFragment implements OnBackPr
 		return (mainEditText.length()>0 && !mainEditText.getText().toString().equals(initialText)) || !mediaViewController.isEmpty() || pollFieldsHaveContent;
 	}
 
-	@Override
-	public boolean onBackPressed(){
-		if(emojiKeyboard.isVisible()){
-			emojiKeyboard.hide();
-			return true;
+	private void updateDraftState(){
+		boolean hasDraft=hasDraft();
+		if(hasDraft!=prevHadDraft){
+			prevHadDraft=hasDraft;
+			if(hasDraft){
+				addBackCallback(discardConfirmationCallback);
+			}else{
+				removeBackCallback(discardConfirmationCallback);
+			}
 		}
-		if(hasDraft()){
-			confirmDiscardDraftAndFinish();
-			return true;
-		}
-		if(sendingOverlay!=null)
-			return true;
-		return false;
 	}
 
 	@Override
@@ -821,7 +900,10 @@ public class ComposeFragment extends MastodonToolbarFragment implements OnBackPr
 	private void confirmDiscardDraftAndFinish(){
 		new M3AlertDialogBuilder(getActivity())
 				.setTitle(editingStatus==null ? R.string.discard_draft : R.string.discard_changes)
-				.setPositiveButton(R.string.discard, (dialog, which)->Nav.finish(this))
+				.setPositiveButton(R.string.discard, (dialog, which)->{
+					removeBackCallback(discardConfirmationCallback);
+					Nav.finish(this);
+				})
 				.setNegativeButton(R.string.cancel, null)
 				.show();
 	}
@@ -835,9 +917,9 @@ public class ComposeFragment extends MastodonToolbarFragment implements OnBackPr
 	 *
 	 * <p>For earlier versions use the built in docs ui via {@link Intent#ACTION_GET_CONTENT}
 	 */
-	private void openFilePicker(){
+	private void openFilePicker(boolean forceGetContent){
 		Intent intent;
-		boolean usePhotoPicker=UiUtils.isPhotoPickerAvailable();
+		boolean usePhotoPicker=!forceGetContent && UiUtils.isPhotoPickerAvailable();
 		if(usePhotoPicker){
 			intent=new Intent(MediaStore.ACTION_PICK_IMAGES);
 			if(mediaViewController.getMaxAttachments()-mediaViewController.getMediaAttachmentsCount()>1)
@@ -908,22 +990,20 @@ public class ComposeFragment extends MastodonToolbarFragment implements OnBackPr
 	}
 
 	private void onVisibilityClick(View v){
-		PopupMenu menu=new PopupMenu(getActivity(), v);
-		menu.inflate(R.menu.compose_visibility);
-		menu.setOnMenuItemClickListener(item->{
-			int id=item.getItemId();
-			if(id==R.id.vis_public){
-				statusVisibility=StatusPrivacy.PUBLIC;
-			}else if(id==R.id.vis_followers){
-				statusVisibility=StatusPrivacy.PRIVATE;
-			}else if(id==R.id.vis_private){
-				statusVisibility=StatusPrivacy.DIRECT;
+		ArrayList<ListItem<StatusPrivacy>> items=new ArrayList<>();
+		ExtendedPopupMenu menu=new ExtendedPopupMenu(getActivity(), items);
+		Consumer<ListItem<StatusPrivacy>> onClick=i->{
+			if(statusVisibility!=i.parentObject){
+				statusVisibility=i.parentObject;
+				updateVisibilityIcon(true);
 			}
-			item.setChecked(true);
-			updateVisibilityIcon();
-			return true;
-		});
-		menu.show();
+			menu.dismiss();
+		};
+		items.add(new ListItem<>(R.string.visibility_public, R.string.visibility_subtitle_public, R.drawable.ic_public_24px, StatusPrivacy.PUBLIC, onClick));
+		items.add(new ListItem<>(R.string.visibility_unlisted, R.string.visibility_subtitle_unlisted, R.drawable.ic_clear_night_24px, StatusPrivacy.UNLISTED, onClick));
+		items.add(new ListItem<>(R.string.visibility_followers_only, R.string.visibility_subtitle_followers, R.drawable.ic_lock_24px, StatusPrivacy.PRIVATE, onClick));
+		items.add(new ListItem<>(R.string.visibility_private, R.string.visibility_subtitle_private, R.drawable.ic_alternate_email_24px, StatusPrivacy.DIRECT, onClick));
+		menu.showAsDropDown(v);
 	}
 
 	private void loadDefaultStatusVisibility(Bundle savedInstanceState){
@@ -949,12 +1029,7 @@ public class ComposeFragment extends MastodonToolbarFragment implements OnBackPr
 	private void applyPreferencesForPostVisibility(Preferences prefs, Bundle savedInstanceState){
 		// Only override the reply visibility if our preference is more private
 		if(prefs.postingDefaultVisibility.isLessVisibleThan(statusVisibility)){
-			// Map unlisted from the API onto public, because we don't have unlisted in the UI
-			statusVisibility=switch(prefs.postingDefaultVisibility){
-				case PUBLIC, UNLISTED -> StatusPrivacy.PUBLIC;
-				case PRIVATE -> StatusPrivacy.PRIVATE;
-				case DIRECT -> StatusPrivacy.DIRECT;
-			};
+			statusVisibility=prefs.postingDefaultVisibility;
 		}
 
 		// A saved privacy setting from a previous compose session wins over all
@@ -962,28 +1037,45 @@ public class ComposeFragment extends MastodonToolbarFragment implements OnBackPr
 			statusVisibility=(StatusPrivacy) savedInstanceState.getSerializable("visibility");
 		}
 
-		updateVisibilityIcon();
+		updateVisibilityIcon(false);
 	}
 
-	private void updateVisibilityIcon(){
+	private void updateVisibilityIcon(boolean animated){
 		if(getActivity()==null)
 			return;
 		if(statusVisibility==null){ // TODO find out why this happens
 			statusVisibility=StatusPrivacy.PUBLIC;
 		}
-		visibilityBtn.setText(switch(statusVisibility){
-			case PUBLIC, UNLISTED -> R.string.visibility_public;
+		TextView visibilityText;
+		if(!animated){
+			visibilityText=visibilityCurrentText;
+		}else{
+			TransitionManager.beginDelayedTransition(visibilityBtn, new TransitionSet()
+					.addTransition(new Fade(Fade.IN | Fade.OUT))
+					.addTransition(new ChangeBounds().excludeTarget(TextView.class, true))
+					.setDuration(250)
+					.setInterpolator(CubicBezierInterpolator.DEFAULT)
+			);
+			visibilityText=visibilityCurrentText==visibilityText1 ? visibilityText2 : visibilityText1;
+			visibilityText.setVisibility(View.VISIBLE);
+			visibilityCurrentText.setVisibility(View.GONE);
+			visibilityCurrentText=visibilityText;
+		}
+		visibilityText.setText(switch(statusVisibility){
+			case PUBLIC -> R.string.visibility_public;
+			case UNLISTED -> R.string.visibility_unlisted;
 			case PRIVATE -> R.string.visibility_followers_only;
 			case DIRECT -> R.string.visibility_private;
 		});
 		Drawable icon=getResources().getDrawable(switch(statusVisibility){
-			case PUBLIC, UNLISTED -> R.drawable.ic_public_20px;
+			case PUBLIC -> R.drawable.ic_public_20px;
+			case UNLISTED -> R.drawable.ic_clear_night_20px;
 			case PRIVATE -> R.drawable.ic_group_20px;
 			case DIRECT -> R.drawable.ic_alternate_email_20px;
 		}, getActivity().getTheme()).mutate();
 		icon.setBounds(0, 0, V.dp(18), V.dp(18));
 		icon.setTint(UiUtils.getThemeColor(getActivity(), R.attr.colorM3Primary));
-		visibilityBtn.setCompoundDrawablesRelative(icon, null, visibilityBtn.getCompoundDrawablesRelative()[2], null);
+		visibilityText.setCompoundDrawablesRelative(icon, null, null, null);
 	}
 
 	@Override
@@ -1120,12 +1212,15 @@ public class ComposeFragment extends MastodonToolbarFragment implements OnBackPr
 	private void showLanguageAlert(){
 		Preferences prefs=AccountSessionManager.getInstance().getAccount(accountID).preferences;
 		ComposeLanguageAlertViewController vc=new ComposeLanguageAlertViewController(getActivity(), prefs!=null ? prefs.postingDefaultLanguage : null, postLang, mainEditText.getText().toString());
-		new M3AlertDialogBuilder(getActivity())
+		final AlertDialog dlg=new M3AlertDialogBuilder(getActivity())
 				.setTitle(R.string.language)
 				.setView(vc.getView())
-				.setPositiveButton(R.string.ok, (dialog, which)->setPostLanguage(vc.getSelectedOption()))
-				.setNegativeButton(R.string.cancel, null)
+				.setPositiveButton(R.string.cancel, null)
 				.show();
+		vc.setSelectionListener(opt->{
+			setPostLanguage(opt);
+			dlg.dismiss();
+		});
 	}
 
 	private void setPostLanguage(ComposeLanguageAlertViewController.SelectedOption language){

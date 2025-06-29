@@ -6,9 +6,11 @@ import android.animation.AnimatorSet;
 import android.animation.ObjectAnimator;
 import android.app.Activity;
 import android.app.Fragment;
+import android.app.assist.AssistContent;
 import android.content.ClipData;
 import android.content.ClipboardManager;
 import android.content.Intent;
+import android.content.pm.ActivityInfo;
 import android.content.res.Configuration;
 import android.content.res.TypedArray;
 import android.graphics.Outline;
@@ -18,11 +20,14 @@ import android.graphics.drawable.LayerDrawable;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.text.SpannableString;
 import android.text.SpannableStringBuilder;
 import android.text.TextUtils;
+import android.text.style.ForegroundColorSpan;
 import android.text.style.ImageSpan;
 import android.transition.ChangeBounds;
 import android.transition.Fade;
+import android.transition.Transition;
 import android.transition.TransitionManager;
 import android.transition.TransitionSet;
 import android.view.LayoutInflater;
@@ -36,36 +41,47 @@ import android.view.ViewTreeObserver;
 import android.view.WindowInsets;
 import android.widget.EditText;
 import android.widget.FrameLayout;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toolbar;
 
+import org.joinmastodon.android.BuildConfig;
 import org.joinmastodon.android.GlobalUserPreferences;
 import org.joinmastodon.android.R;
+import org.joinmastodon.android.api.MastodonAPIRequest;
 import org.joinmastodon.android.api.requests.accounts.GetAccountByID;
+import org.joinmastodon.android.api.requests.accounts.GetAccountFamiliarFollowers;
 import org.joinmastodon.android.api.requests.accounts.GetAccountRelationships;
 import org.joinmastodon.android.api.requests.accounts.GetOwnAccount;
 import org.joinmastodon.android.api.requests.accounts.SetAccountFollowed;
 import org.joinmastodon.android.api.requests.accounts.UpdateAccountCredentials;
 import org.joinmastodon.android.api.session.AccountSessionManager;
+import org.joinmastodon.android.fragments.account_list.FamiliarFollowerListFragment;
 import org.joinmastodon.android.fragments.account_list.FollowerListFragment;
 import org.joinmastodon.android.fragments.account_list.FollowingListFragment;
 import org.joinmastodon.android.fragments.report.ReportReasonChoiceFragment;
 import org.joinmastodon.android.model.Account;
 import org.joinmastodon.android.model.AccountField;
 import org.joinmastodon.android.model.Attachment;
+import org.joinmastodon.android.model.FamiliarFollowers;
 import org.joinmastodon.android.model.Relationship;
+import org.joinmastodon.android.model.viewmodel.AccountViewModel;
 import org.joinmastodon.android.ui.M3AlertDialogBuilder;
 import org.joinmastodon.android.ui.OutlineProviders;
 import org.joinmastodon.android.ui.SimpleViewHolder;
 import org.joinmastodon.android.ui.SingleImagePhotoViewerListener;
+import org.joinmastodon.android.ui.Snackbar;
+import org.joinmastodon.android.ui.photoviewer.AvatarCropper;
 import org.joinmastodon.android.ui.photoviewer.PhotoViewer;
+import org.joinmastodon.android.ui.sheets.DecentralizationExplainerSheet;
 import org.joinmastodon.android.ui.tabs.TabLayout;
 import org.joinmastodon.android.ui.tabs.TabLayoutMediator;
 import org.joinmastodon.android.ui.text.CustomEmojiSpan;
 import org.joinmastodon.android.ui.text.HtmlParser;
+import org.joinmastodon.android.ui.text.ImageSpanThatDoesNotBreakShitForNoGoodReason;
 import org.joinmastodon.android.ui.utils.SimpleTextWatcher;
 import org.joinmastodon.android.ui.utils.UiUtils;
 import org.joinmastodon.android.ui.views.CoverImageView;
@@ -81,39 +97,43 @@ import java.time.format.DateTimeFormatter;
 import java.time.format.FormatStyle;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 import androidx.viewpager2.widget.ViewPager2;
 import me.grishka.appkit.Nav;
+import me.grishka.appkit.api.APIRequest;
 import me.grishka.appkit.api.Callback;
 import me.grishka.appkit.api.ErrorResponse;
 import me.grishka.appkit.api.SimpleCallback;
 import me.grishka.appkit.fragments.BaseRecyclerFragment;
 import me.grishka.appkit.fragments.LoaderFragment;
-import me.grishka.appkit.fragments.OnBackPressedListener;
 import me.grishka.appkit.imageloader.ViewImageLoader;
 import me.grishka.appkit.imageloader.requests.UrlImageLoaderRequest;
 import me.grishka.appkit.utils.CubicBezierInterpolator;
 import me.grishka.appkit.utils.V;
 import me.grishka.appkit.views.FragmentRootLinearLayout;
 
-public class ProfileFragment extends LoaderFragment implements OnBackPressedListener, ScrollableToTop{
+public class ProfileFragment extends LoaderFragment implements ScrollableToTop, AssistContentProviderFragment{
 	private static final int AVATAR_RESULT=722;
 	private static final int COVER_RESULT=343;
 
 	private ImageView avatar;
 	private CoverImageView cover;
 	private View avatarBorder;
-	private TextView name, username, bio, followersCount, followersLabel, followingCount, followingLabel;
+	private TextView name, username, usernameDomain, bio, followersCount, followersLabel, followingCount, followingLabel;
 	private ProgressBarButton actionButton;
 	private ViewPager2 pager;
 	private NestedRecyclerScrollView scrollView;
 	private ProfileFeaturedFragment featuredFragment;
 	private AccountTimelineFragment timelineFragment;
 	private ProfileAboutFragment aboutFragment;
+	private SavedPostsTimelineFragment savedFragment;
 	private TabLayout tabbar;
 	private SwipeRefreshLayout refreshLayout;
 	private View followersBtn, followingBtn;
@@ -127,12 +147,19 @@ public class ProfileFragment extends LoaderFragment implements OnBackPressedList
 	private View tabsDivider;
 	private View actionButtonWrap;
 	private CustomDrawingOrderLinearLayout scrollableContent;
+	private ImageButton qrCodeButton;
+	private ProgressBar innerProgress;
+	private View actions;
+	private View familiarFollowersRow;
+	private ImageView[] familiarFollowersAvatars;
+	private TextView familiarFollowersLabel;
 
 	private Account account;
 	private String accountID;
 	private Relationship relationship;
 	private boolean isOwnProfile;
 	private ArrayList<AccountField> fields=new ArrayList<>();
+	private List<Account> familiarFollowers=List.of();
 
 	private boolean isInEditMode, editDirty;
 	private Uri editNewAvatar, editNewCover;
@@ -148,6 +175,8 @@ public class ProfileFragment extends LoaderFragment implements OnBackPressedList
 	private Animator tabBarColorAnim;
 	private MenuItem editSaveMenuItem;
 	private boolean savingEdits;
+	private Runnable editModeBackCallback=this::onEditModeBackCallback;
+	private HashSet<APIRequest<?>> relationshipRequests=new HashSet<>();
 
 	@Override
 	public void onCreate(Bundle savedInstanceState){
@@ -177,6 +206,14 @@ public class ProfileFragment extends LoaderFragment implements OnBackPressedList
 	}
 
 	@Override
+	public void onDestroy(){
+		super.onDestroy();
+		for(APIRequest<?> req:relationshipRequests)
+			req.cancel();
+		relationshipRequests.clear();
+	}
+
+	@Override
 	public View onCreateContentView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState){
 		View content=inflater.inflate(R.layout.fragment_profile, container, false);
 
@@ -185,6 +222,7 @@ public class ProfileFragment extends LoaderFragment implements OnBackPressedList
 		avatarBorder=content.findViewById(R.id.avatar_border);
 		name=content.findViewById(R.id.name);
 		username=content.findViewById(R.id.username);
+		usernameDomain=content.findViewById(R.id.username_domain);
 		bio=content.findViewById(R.id.bio);
 		followersCount=content.findViewById(R.id.followers_count);
 		followersLabel=content.findViewById(R.id.followers_label);
@@ -208,6 +246,16 @@ public class ProfileFragment extends LoaderFragment implements OnBackPressedList
 		tabsDivider=content.findViewById(R.id.tabs_divider);
 		actionButtonWrap=content.findViewById(R.id.profile_action_btn_wrap);
 		scrollableContent=content.findViewById(R.id.scrollable_content);
+		qrCodeButton=content.findViewById(R.id.qr_code);
+		innerProgress=content.findViewById(R.id.profile_progress);
+		actions=content.findViewById(R.id.profile_actions);
+		familiarFollowersRow=content.findViewById(R.id.familiar_followers);
+		familiarFollowersAvatars=new ImageView[]{
+				content.findViewById(R.id.familiar_followers_ava1),
+				content.findViewById(R.id.familiar_followers_ava2),
+				content.findViewById(R.id.familiar_followers_ava3),
+		};
+		familiarFollowersLabel=content.findViewById(R.id.familiar_followers_label);
 
 		avatar.setOutlineProvider(OutlineProviders.roundedRect(24));
 		avatar.setClipToOutline(true);
@@ -220,13 +268,14 @@ public class ProfileFragment extends LoaderFragment implements OnBackPressedList
 			}
 		};
 
-		tabViews=new FrameLayout[3];
+		tabViews=new FrameLayout[4];
 		for(int i=0;i<tabViews.length;i++){
 			FrameLayout tabView=new FrameLayout(getActivity());
 			tabView.setId(switch(i){
 				case 0 -> R.id.profile_featured;
 				case 1 -> R.id.profile_timeline;
 				case 2 -> R.id.profile_about;
+				case 3 -> R.id.profile_saved;
 				default -> throw new IllegalStateException("Unexpected value: "+i);
 			});
 			tabView.setVisibility(View.GONE);
@@ -234,7 +283,7 @@ public class ProfileFragment extends LoaderFragment implements OnBackPressedList
 			tabViews[i]=tabView;
 		}
 
-		pager.setOffscreenPageLimit(4);
+		pager.setOffscreenPageLimit(10);
 		pager.setAdapter(new ProfilePagerAdapter());
 		pager.getLayoutParams().height=getResources().getDisplayMetrics().heightPixels;
 
@@ -244,12 +293,17 @@ public class ProfileFragment extends LoaderFragment implements OnBackPressedList
 
 		tabbar.setTabTextColors(UiUtils.getThemeColor(getActivity(), R.attr.colorM3OnSurfaceVariant), UiUtils.getThemeColor(getActivity(), R.attr.colorM3Primary));
 		tabbar.setTabTextSize(V.dp(14));
-		tabLayoutMediator=new TabLayoutMediator(tabbar, pager, (tab, position)->tab.setText(switch(position){
-			case 0 -> R.string.profile_featured;
-			case 1 -> R.string.profile_timeline;
-			case 2 -> R.string.profile_about;
-			default -> throw new IllegalStateException();
-		}));
+		tabLayoutMediator=new TabLayoutMediator(tabbar, pager, (tab, position)->{
+			tab.setText(switch(position){
+				case 0 -> R.string.profile_featured;
+				case 1 -> R.string.profile_timeline;
+				case 2 -> R.string.profile_about;
+				case 3 -> R.string.profile_saved_posts;
+				default -> throw new IllegalStateException();
+			});
+			tab.view.textView.setSingleLine();
+			tab.view.textView.setEllipsize(TextUtils.TruncateAt.END);
+		});
 		tabbar.addOnTabSelectedListener(new TabLayout.OnTabSelectedListener(){
 			@Override
 			public void onTabSelected(TabLayout.Tab tab){}
@@ -276,11 +330,13 @@ public class ProfileFragment extends LoaderFragment implements OnBackPressedList
 		cover.setOnClickListener(this::onCoverClick);
 		refreshLayout.setOnRefreshListener(this);
 		fab.setOnClickListener(this::onFabClick);
+		familiarFollowersRow.setOnClickListener(this::onFamiliarFollowersClick);
 
 		if(savedInstanceState!=null){
 			featuredFragment=(ProfileFeaturedFragment) getChildFragmentManager().getFragment(savedInstanceState, "featured");
 			timelineFragment=(AccountTimelineFragment) getChildFragmentManager().getFragment(savedInstanceState, "timeline");
 			aboutFragment=(ProfileAboutFragment) getChildFragmentManager().getFragment(savedInstanceState, "about");
+			savedFragment=(SavedPostsTimelineFragment) getChildFragmentManager().getFragment(savedInstanceState, "saved");
 		}
 
 		if(loaded){
@@ -295,6 +351,8 @@ public class ProfileFragment extends LoaderFragment implements OnBackPressedList
 		followingBtn.setOnClickListener(this::onFollowersOrFollowingClick);
 
 		username.setOnLongClickListener(v->{
+			if(account==null)
+				return true;
 			String username=account.acct;
 			if(!username.contains("@")){
 				username+="@"+AccountSessionManager.getInstance().getAccount(accountID).domain;
@@ -319,6 +377,21 @@ public class ProfileFragment extends LoaderFragment implements OnBackPressedList
 
 		nameEdit.addTextChangedListener(new SimpleTextWatcher(e->editDirty=true));
 		bioEdit.addTextChangedListener(new SimpleTextWatcher(e->editDirty=true));
+
+		usernameDomain.setOnClickListener(v->{
+			if(account==null)
+				return;
+			new DecentralizationExplainerSheet(getActivity(), accountID, account).show();
+		});
+		qrCodeButton.setOnClickListener(v->{
+			Bundle args=new Bundle();
+			args.putString("account", accountID);
+			args.putParcelable("targetAccount", Parcels.wrap(account));
+			ProfileQrCodeFragment qf=new ProfileQrCodeFragment();
+			qf.setArguments(args);
+			qf.show(getChildFragmentManager(), "qrDialog");
+		});
+		familiarFollowersRow.setVisibility(View.GONE);
 
 		return sizeWrapper;
 	}
@@ -346,6 +419,8 @@ public class ProfileFragment extends LoaderFragment implements OnBackPressedList
 								timelineFragment.onRefresh();
 							if(featuredFragment.loaded)
 								featuredFragment.onRefresh();
+							if(savedFragment!=null && savedFragment.loaded)
+								savedFragment.onRefresh();
 						}
 						V.setVisibilityAnimated(fab, View.VISIBLE);
 					}
@@ -381,16 +456,21 @@ public class ProfileFragment extends LoaderFragment implements OnBackPressedList
 			aboutFragment=new ProfileAboutFragment();
 			aboutFragment.setFields(fields);
 		}
-		pager.getAdapter().notifyDataSetChanged();
-		pager.getViewTreeObserver().addOnPreDrawListener(new ViewTreeObserver.OnPreDrawListener(){
-			@Override
-			public boolean onPreDraw(){
-				pager.getViewTreeObserver().removeOnPreDrawListener(this);
-				pager.setCurrentItem(1, false);
-				tabbar.selectTab(tabbar.getTabAt(1));
-				return true;
-			}
-		});
+		if(savedFragment==null && isOwnProfile){
+			savedFragment=SavedPostsTimelineFragment.newInstance(accountID, account, false);
+		}
+		if(!refreshing){
+			pager.getAdapter().notifyDataSetChanged();
+			pager.getViewTreeObserver().addOnPreDrawListener(new ViewTreeObserver.OnPreDrawListener(){
+				@Override
+				public boolean onPreDraw(){
+					pager.getViewTreeObserver().removeOnPreDrawListener(this);
+					pager.setCurrentItem(1, false);
+					tabbar.selectTab(tabbar.getTabAt(1));
+					return true;
+				}
+			});
+		}
 		super.dataLoaded();
 	}
 
@@ -441,6 +521,8 @@ public class ProfileFragment extends LoaderFragment implements OnBackPressedList
 				return true;
 			}
 		});
+		if(!loaded)
+			bindHeaderViewForPreviewMaybe();
 	}
 
 	@Override
@@ -454,6 +536,8 @@ public class ProfileFragment extends LoaderFragment implements OnBackPressedList
 			getChildFragmentManager().putFragment(outState, "timeline", timelineFragment);
 		if(aboutFragment.isAdded())
 			getChildFragmentManager().putFragment(outState, "about", aboutFragment);
+		if(savedFragment!=null && savedFragment.isAdded())
+			getChildFragmentManager().putFragment(outState, "saved", savedFragment);
 	}
 
 	@Override
@@ -482,16 +566,52 @@ public class ProfileFragment extends LoaderFragment implements OnBackPressedList
 		if(timelineFragment!=null && timelineFragment.isAdded() && childInsets!=null){
 			timelineFragment.onApplyWindowInsets(childInsets);
 			featuredFragment.onApplyWindowInsets(childInsets);
+			if(savedFragment!=null)
+				savedFragment.onApplyWindowInsets(childInsets);
 		}
 	}
 
+	private void bindHeaderViewForPreviewMaybe(){
+		if(loaded)
+			return;
+		String username=getArguments().getString("accountUsername");
+		String domain=getArguments().getString("accountDomain");
+		if(TextUtils.isEmpty(username) || TextUtils.isEmpty(domain))
+			return;
+		content.setVisibility(View.VISIBLE);
+		progress.setVisibility(View.GONE);
+		errorView.setVisibility(View.GONE);
+		innerProgress.setVisibility(View.VISIBLE);
+		this.username.setText(username);
+		name.setText(username);
+		usernameDomain.setText(domain);
+		avatar.setImageResource(R.drawable.image_placeholder);
+		cover.setImageResource(R.drawable.image_placeholder);
+		actions.setVisibility(View.GONE);
+		bio.setVisibility(View.GONE);
+		countersLayout.setVisibility(View.GONE);
+		tabsDivider.setVisibility(View.GONE);
+	}
+
 	private void bindHeaderView(){
+		if(innerProgress.getVisibility()==View.VISIBLE){
+			TransitionManager.beginDelayedTransition(contentView, new TransitionSet()
+					.addTransition(new Fade(Fade.IN | Fade.OUT))
+					.excludeChildren(actions, true)
+					.setDuration(250)
+					.setInterpolator(CubicBezierInterpolator.DEFAULT)
+			);
+			innerProgress.setVisibility(View.GONE);
+			countersLayout.setVisibility(View.VISIBLE);
+			actions.setVisibility(View.VISIBLE);
+			tabsDivider.setVisibility(View.VISIBLE);
+		}
 		setTitle(account.displayName);
 		setSubtitle(getResources().getQuantityString(R.plurals.x_posts, (int)(account.statusesCount%1000), account.statusesCount));
-		ViewImageLoader.load(avatar, null, new UrlImageLoaderRequest(GlobalUserPreferences.playGifs ? account.avatar : account.avatarStatic, V.dp(100), V.dp(100)));
-		ViewImageLoader.load(cover, null, new UrlImageLoaderRequest(GlobalUserPreferences.playGifs ? account.header : account.headerStatic, 1000, 1000));
+		ViewImageLoader.loadWithoutAnimation(avatar, avatar.getDrawable(), new UrlImageLoaderRequest(GlobalUserPreferences.playGifs ? account.avatar : account.avatarStatic, V.dp(100), V.dp(100)));
+		ViewImageLoader.loadWithoutAnimation(cover, cover.getDrawable(), new UrlImageLoaderRequest(GlobalUserPreferences.playGifs ? account.header : account.headerStatic, 1000, 1000));
 		SpannableStringBuilder ssb=new SpannableStringBuilder(account.displayName);
-		if(AccountSessionManager.get(accountID).getLocalPreferences().customEmojiInNames)
+		if(GlobalUserPreferences.customEmojiInNames)
 			HtmlParser.parseCustomEmoji(ssb, account.emojis);
 		name.setText(ssb);
 		setTitle(ssb);
@@ -499,23 +619,22 @@ public class ProfileFragment extends LoaderFragment implements OnBackPressedList
 		boolean isSelf=AccountSessionManager.getInstance().isSelf(accountID, account);
 
 		if(account.locked){
-			ssb=new SpannableStringBuilder("@");
-			ssb.append(account.acct);
-			if(isSelf){
-				ssb.append('@');
-				ssb.append(AccountSessionManager.getInstance().getAccount(accountID).domain);
-			}
+			ssb=new SpannableStringBuilder(account.username);
 			ssb.append(" ");
 			Drawable lock=username.getResources().getDrawable(R.drawable.ic_lock_fill1_20px, getActivity().getTheme()).mutate();
 			lock.setBounds(0, 0, lock.getIntrinsicWidth(), lock.getIntrinsicHeight());
 			lock.setTint(username.getCurrentTextColor());
-			ssb.append(getString(R.string.manually_approves_followers), new ImageSpan(lock, ImageSpan.ALIGN_BOTTOM), 0);
+			ssb.append(getString(R.string.manually_approves_followers), new ImageSpanThatDoesNotBreakShitForNoGoodReason(lock, ImageSpan.ALIGN_BOTTOM), 0);
 			username.setText(ssb);
 		}else{
-			// noinspection SetTextI18n
-			username.setText('@'+account.acct+(isSelf ? ('@'+AccountSessionManager.getInstance().getAccount(accountID).domain) : ""));
+			username.setText(account.username);
 		}
-		CharSequence parsedBio=HtmlParser.parse(account.note, account.emojis, Collections.emptyList(), Collections.emptyList(), accountID, account);
+		String domain=account.getDomain();
+		if(TextUtils.isEmpty(domain))
+			domain=AccountSessionManager.get(accountID).domain;
+		usernameDomain.setText(domain);
+
+		CharSequence parsedBio=HtmlParser.parse(account.note, account.emojis, Collections.emptyList(), Collections.emptyList(), accountID, account, getActivity());
 		if(TextUtils.isEmpty(parsedBio)){
 			bio.setVisibility(View.GONE);
 		}else{
@@ -550,7 +669,7 @@ public class ProfileFragment extends LoaderFragment implements OnBackPressedList
 		fields.add(joined);
 
 		for(AccountField field:account.fields){
-			field.parsedValue=ssb=HtmlParser.parse(field.value, account.emojis, Collections.emptyList(), Collections.emptyList(), accountID, account);
+			field.parsedValue=ssb=HtmlParser.parse(field.value, account.emojis, Collections.emptyList(), Collections.emptyList(), accountID, account, getActivity());
 			field.valueEmojis=ssb.getSpans(0, ssb.length(), CustomEmojiSpan.class);
 			ssb=new SpannableStringBuilder(field.name);
 			HtmlParser.parseCustomEmoji(ssb, account.emojis);
@@ -577,6 +696,14 @@ public class ProfileFragment extends LoaderFragment implements OnBackPressedList
 		if(onScrollListener!=null){
 			onScrollListener.setViews(getToolbar());
 		}
+		getToolbar().setTranslationZ(tabBarIsAtTop ? 0 : V.dp(3));
+	}
+
+	private CharSequence makeRedString(CharSequence s){
+		int color=UiUtils.getThemeColor(getActivity(), R.attr.colorM3Error);
+		SpannableString ss=new SpannableString(s);
+		ss.setSpan(new ForegroundColorSpan(color), 0, ss.length(), 0);
+		return ss;
 	}
 
 	@Override
@@ -595,28 +722,36 @@ public class ProfileFragment extends LoaderFragment implements OnBackPressedList
 		if(isOwnProfile)
 			return;
 
-		menu.findItem(R.id.mute).setTitle(getString(relationship.muting ? R.string.unmute_user : R.string.mute_user, account.displayName));
-		menu.findItem(R.id.block).setTitle(getString(relationship.blocking ? R.string.unblock_user : R.string.block_user, account.displayName));
-		menu.findItem(R.id.report).setTitle(getString(R.string.report_user, account.displayName));
+		menu.findItem(R.id.mute).setTitle(getString(relationship.muting ? R.string.unmute_user : R.string.mute_user, account.getDisplayUsername()));
+		menu.findItem(R.id.block).setTitle(makeRedString(getString(relationship.blocking ? R.string.unblock_user : R.string.block_user, account.getDisplayUsername())));
+		menu.findItem(R.id.report).setTitle(makeRedString(getString(R.string.report_user, account.getDisplayUsername())));
 		if(relationship.following)
-			menu.findItem(R.id.hide_boosts).setTitle(getString(relationship.showingReblogs ? R.string.hide_boosts_from_user : R.string.show_boosts_from_user, account.displayName));
+			menu.findItem(R.id.hide_boosts).setTitle(getString(relationship.showingReblogs ? R.string.hide_boosts_from_user : R.string.show_boosts_from_user));
 		else
 			menu.findItem(R.id.hide_boosts).setVisible(false);
 		if(!account.isLocal())
-			menu.findItem(R.id.block_domain).setTitle(getString(relationship.domainBlocking ? R.string.unblock_domain : R.string.block_domain, account.getDomain()));
+			menu.findItem(R.id.block_domain).setTitle(makeRedString(getString(relationship.domainBlocking ? R.string.unblock_domain : R.string.block_domain, account.getDomain())));
 		else
 			menu.findItem(R.id.block_domain).setVisible(false);
 		menu.findItem(R.id.add_to_list).setVisible(relationship.following);
+
+		if(relationship.following){
+			MenuItem notifications=menu.findItem(R.id.notifications);
+			notifications.setVisible(true);
+			notifications.setIcon(relationship.notifying ? R.drawable.ic_notifications_fill1_24px : R.drawable.ic_notifications_24px);
+			notifications.setTitle(getString(relationship.notifying ? R.string.disable_new_post_notifications : R.string.enable_new_post_notifications, account.getDisplayUsername()));
+		}
+
+		if(Build.VERSION.SDK_INT>=Build.VERSION_CODES.P && !UiUtils.isEMUI() && !UiUtils.isMagic()){
+			menu.setGroupDividerEnabled(true);
+		}
 	}
 
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item){
 		int id=item.getItemId();
 		if(id==R.id.share){
-			Intent intent=new Intent(Intent.ACTION_SEND);
-			intent.setType("text/plain");
-			intent.putExtra(Intent.EXTRA_TEXT, account.url);
-			startActivity(Intent.createChooser(intent, item.getTitle()));
+			UiUtils.openSystemShareSheet(getActivity(), account);
 		}else if(id==R.id.mute){
 			confirmToggleMuted();
 		}else if(id==R.id.block){
@@ -630,12 +765,12 @@ public class ProfileFragment extends LoaderFragment implements OnBackPressedList
 		}else if(id==R.id.open_in_browser){
 			UiUtils.launchWebBrowser(getActivity(), account.url);
 		}else if(id==R.id.block_domain){
-			UiUtils.confirmToggleBlockDomain(getActivity(), accountID, account.getDomain(), relationship.domainBlocking, ()->{
+			UiUtils.confirmToggleBlockDomain(getActivity(), accountID, account, relationship.domainBlocking, ()->{
 				relationship.domainBlocking=!relationship.domainBlocking;
 				updateRelationship();
-			});
+			}, this::updateRelationship);
 		}else if(id==R.id.hide_boosts){
-			new SetAccountFollowed(account.id, true, !relationship.showingReblogs)
+			new SetAccountFollowed(account.id, true, !relationship.showingReblogs, relationship.notifying)
 					.setCallback(new Callback<>(){
 						@Override
 						public void onSuccess(Relationship result){
@@ -649,14 +784,6 @@ public class ProfileFragment extends LoaderFragment implements OnBackPressedList
 					})
 					.wrapProgress(getActivity(), R.string.loading, false)
 					.exec(accountID);
-		}else if(id==R.id.bookmarks){
-			Bundle args=new Bundle();
-			args.putString("account", accountID);
-			Nav.go(getActivity(), BookmarkedStatusListFragment.class, args);
-		}else if(id==R.id.favorites){
-			Bundle args=new Bundle();
-			args.putString("account", accountID);
-			Nav.go(getActivity(), FavoritedStatusListFragment.class, args);
 		}else if(id==R.id.save){
 			if(isInEditMode)
 				saveAndExitEditMode();
@@ -665,15 +792,39 @@ public class ProfileFragment extends LoaderFragment implements OnBackPressedList
 			args.putString("account", accountID);
 			args.putParcelable("targetAccount", Parcels.wrap(account));
 			Nav.go(getActivity(), AddAccountToListsFragment.class, args);
+		}else if(id==R.id.notifications){
+			new SetAccountFollowed(account.id, true, relationship.showingReblogs, !relationship.notifying)
+					.setCallback(new Callback<>(){
+						@Override
+						public void onSuccess(Relationship result){
+							updateRelationship(result);
+							new Snackbar.Builder(getActivity())
+									.setText(result.notifying ? R.string.new_post_notifications_enabled : R.string.new_post_notifications_disabled)
+									.show();
+						}
+
+						@Override
+						public void onError(ErrorResponse error){
+							error.showToast(getActivity());
+						}
+					})
+					.wrapProgress(getActivity(), R.string.loading, false)
+					.exec(accountID);
+		}else if(id==R.id.copy_link){
+			getActivity().getSystemService(ClipboardManager.class).setPrimaryClip(ClipData.newPlainText(null, account.url));
+			UiUtils.maybeShowTextCopiedToast(getActivity());
 		}
 		return true;
 	}
 
 	private void loadRelationship(){
-		new GetAccountRelationships(Collections.singletonList(account.id))
-				.setCallback(new Callback<>(){
+		MastodonAPIRequest<List<Relationship>> relReq=new GetAccountRelationships(Collections.singletonList(account.id));
+		relReq.setCallback(new Callback<>(){
 					@Override
 					public void onSuccess(List<Relationship> result){
+						relationshipRequests.remove(relReq);
+						if(getActivity()==null)
+							return;
 						if(!result.isEmpty()){
 							relationship=result.get(0);
 							updateRelationship();
@@ -682,10 +833,34 @@ public class ProfileFragment extends LoaderFragment implements OnBackPressedList
 
 					@Override
 					public void onError(ErrorResponse error){
-
+						relationshipRequests.remove(relReq);
 					}
 				})
 				.exec(accountID);
+		MastodonAPIRequest<List<FamiliarFollowers>> followersReq=new GetAccountFamiliarFollowers(Set.of(account.id));
+		followersReq.setCallback(new Callback<>(){
+					@Override
+					public void onSuccess(List<FamiliarFollowers> result){
+						relationshipRequests.remove(followersReq);
+						if(getActivity()==null)
+							return;
+						for(FamiliarFollowers ff:result){
+							if(ff.id.equals(account.id)){
+								familiarFollowers=ff.accounts;
+								updateFamiliarFollowers();
+								break;
+							}
+						}
+					}
+
+					@Override
+					public void onError(ErrorResponse error){
+						relationshipRequests.remove(followersReq);
+					}
+				})
+				.exec(accountID);
+		relationshipRequests.add(relReq);
+		relationshipRequests.add(followersReq);
 	}
 
 	private void updateRelationship(){
@@ -694,6 +869,38 @@ public class ProfileFragment extends LoaderFragment implements OnBackPressedList
 		UiUtils.setRelationshipToActionButtonM3(relationship, actionButton);
 		actionProgress.setIndeterminateTintList(actionButton.getTextColors());
 		followsYouView.setVisibility(relationship.followedBy ? View.VISIBLE : View.GONE);
+	}
+
+	private void updateFamiliarFollowers(){
+		if(!familiarFollowers.isEmpty()){
+			familiarFollowersRow.setVisibility(View.VISIBLE);
+			List<AccountViewModel> followers=familiarFollowers.stream().limit(3).map(a->new AccountViewModel(a, accountID, false, getActivity())).collect(Collectors.toList());
+			String template=switch(familiarFollowers.size()){
+				case 1 -> getString(R.string.familiar_followers_one, "{first}");
+				case 2 -> getString(R.string.familiar_followers_two, "{first}", "{second}");
+				default -> getResources().getQuantityString(R.plurals.familiar_followers_many, familiarFollowers.size()-2, "{first}", "{second}", familiarFollowers.size()-2);
+			};
+			SpannableStringBuilder ssb=new SpannableStringBuilder(template);
+			if(familiarFollowers.size()>1){
+				int index=template.indexOf("{second}");
+				ssb.replace(index, index+8, followers.get(1).parsedName);
+				template=template.replace("{second}", "#".repeat(followers.get(1).parsedName.length()));
+			}
+			int index=template.indexOf("{first}");
+			ssb.replace(index, index+7, followers.get(0).parsedName);
+			familiarFollowersLabel.setText(ssb);
+			UiUtils.loadCustomEmojiInTextView(familiarFollowersLabel);
+			if(familiarFollowers.size()<3)
+				familiarFollowersAvatars[2].setVisibility(View.GONE);
+			if(familiarFollowers.size()<2)
+				familiarFollowersAvatars[1].setVisibility(View.GONE);
+
+			int i=0;
+			for(AccountViewModel avm:followers){
+				ViewImageLoader.loadWithoutAnimation(familiarFollowersAvatars[i], getResources().getDrawable(R.drawable.image_placeholder, getActivity().getTheme()), avm.avaRequest);
+				i++;
+			}
+		}
 	}
 
 	private void onScrollChanged(View v, int scrollX, int scrollY, int oldScrollX, int oldScrollY){
@@ -749,6 +956,9 @@ public class ProfileFragment extends LoaderFragment implements OnBackPressedList
 				editSaveMenuItem.setVisible(!buttonInView);
 			}
 		}
+		if((scrollY==0 && oldScrollY!=0) || (scrollY!=0 && oldScrollY==0)){
+			refreshLayout.setEnabled(scrollY==0);
+		}
 	}
 
 	private Fragment getFragmentForPage(int page){
@@ -756,6 +966,7 @@ public class ProfileFragment extends LoaderFragment implements OnBackPressedList
 			case 0 -> featuredFragment;
 			case 1 -> timelineFragment;
 			case 2 -> aboutFragment;
+			case 3 -> savedFragment;
 			default -> throw new IllegalStateException();
 		};
 	}
@@ -819,7 +1030,7 @@ public class ProfileFragment extends LoaderFragment implements OnBackPressedList
 		pager.setUserInputEnabled(false);
 		actionButton.setText(R.string.save_changes);
 		pager.setCurrentItem(2);
-		for(int i=0;i<3;i++){
+		for(int i=0;i<4;i++){
 			tabbar.getTabAt(i).view.setEnabled(false);
 		}
 		Drawable overlay=getResources().getDrawable(R.drawable.edit_avatar_overlay).mutate();
@@ -832,17 +1043,48 @@ public class ProfileFragment extends LoaderFragment implements OnBackPressedList
 		toolbar.setNavigationContentDescription(R.string.discard);
 
 		ViewGroup parent=contentView.findViewById(R.id.scrollable_content);
+		Runnable updater=new Runnable(){
+			@Override
+			public void run(){
+				// setPadding() calls nullLayouts() internally, forcing the text layout to update
+				actionButton.setPadding(actionButton.getPaddingLeft(), 1, actionButton.getPaddingRight(), 0);
+				actionButton.setPadding(actionButton.getPaddingLeft(), 0, actionButton.getPaddingRight(), 0);
+				actionButton.measure(actionButton.getWidth()|View.MeasureSpec.EXACTLY, actionButton.getHeight()|View.MeasureSpec.EXACTLY);
+				actionButton.postOnAnimation(this);
+			}
+		};
+		actionButton.postOnAnimation(updater);
 		TransitionManager.beginDelayedTransition(parent, new TransitionSet()
 				.addTransition(new Fade(Fade.IN | Fade.OUT))
 				.addTransition(new ChangeBounds())
 				.setDuration(250)
 				.setInterpolator(CubicBezierInterpolator.DEFAULT)
+				.addListener(new Transition.TransitionListener(){
+					@Override
+					public void onTransitionStart(Transition transition){}
+
+					@Override
+					public void onTransitionEnd(Transition transition){
+						actionButton.removeCallbacks(updater);
+					}
+
+					@Override
+					public void onTransitionCancel(Transition transition){}
+
+					@Override
+					public void onTransitionPause(Transition transition){}
+
+					@Override
+					public void onTransitionResume(Transition transition){}
+				})
 		);
 
-		name.setVisibility(View.GONE);
-		username.setVisibility(View.GONE);
+		name.setVisibility(View.INVISIBLE);
+		username.setVisibility(View.INVISIBLE);
 		bio.setVisibility(View.GONE);
 		countersLayout.setVisibility(View.GONE);
+		qrCodeButton.setVisibility(View.GONE);
+		usernameDomain.setVisibility(View.INVISIBLE);
 
 		nameEditWrap.setVisibility(View.VISIBLE);
 		nameEdit.setText(account.displayName);
@@ -854,16 +1096,26 @@ public class ProfileFragment extends LoaderFragment implements OnBackPressedList
 		refreshLayout.setEnabled(false);
 		editDirty=false;
 		V.setVisibilityAnimated(fab, View.GONE);
+		addBackCallback(editModeBackCallback);
 	}
 
 	private void exitEditMode(){
-		if(!isInEditMode)
-			throw new IllegalStateException();
+		if(savingEdits)
+			return;
+		if(getActivity()==null)
+			return;
+		if(!isInEditMode){
+			if(BuildConfig.DEBUG)
+				throw new IllegalStateException();
+			else
+				return;
+		}
 		isInEditMode=false;
+		removeBackCallback(editModeBackCallback);
 
 		invalidateOptionsMenu();
 		actionButton.setText(R.string.edit_profile);
-		for(int i=0;i<3;i++){
+		for(int i=0;i<4;i++){
 			tabbar.getTabAt(i).view.setEnabled(true);
 		}
 		pager.setUserInputEnabled(true);
@@ -871,7 +1123,7 @@ public class ProfileFragment extends LoaderFragment implements OnBackPressedList
 
 		Toolbar toolbar=getToolbar();
 		if(canGoBack()){
-			Drawable back=getToolbarContext().getDrawable(R.drawable.ic_arrow_back).mutate();
+			Drawable back=getToolbarContext().getDrawable(me.grishka.appkit.R.drawable.ic_arrow_back).mutate();
 			back.setTint(UiUtils.getThemeColor(getToolbarContext(), R.attr.colorM3OnSurfaceVariant));
 			toolbar.setNavigationIcon(back);
 			toolbar.setNavigationContentDescription(0);
@@ -881,11 +1133,40 @@ public class ProfileFragment extends LoaderFragment implements OnBackPressedList
 		editSaveMenuItem=null;
 
 		ViewGroup parent=contentView.findViewById(R.id.scrollable_content);
+		Runnable updater=new Runnable(){
+			@Override
+			public void run(){
+				// setPadding() calls nullLayouts() internally, forcing the text layout to update
+				actionButton.setPadding(actionButton.getPaddingLeft(), 1, actionButton.getPaddingRight(), 0);
+				actionButton.setPadding(actionButton.getPaddingLeft(), 0, actionButton.getPaddingRight(), 0);
+				actionButton.measure(actionButton.getWidth()|View.MeasureSpec.EXACTLY, actionButton.getHeight()|View.MeasureSpec.EXACTLY);
+				actionButton.postOnAnimation(this);
+			}
+		};
+		actionButton.postOnAnimation(updater);
 		TransitionManager.beginDelayedTransition(parent, new TransitionSet()
 				.addTransition(new Fade(Fade.IN | Fade.OUT))
 				.addTransition(new ChangeBounds())
 				.setDuration(250)
 				.setInterpolator(CubicBezierInterpolator.DEFAULT)
+				.addListener(new Transition.TransitionListener(){
+					@Override
+					public void onTransitionStart(Transition transition){}
+
+					@Override
+					public void onTransitionEnd(Transition transition){
+						actionButton.removeCallbacks(updater);
+					}
+
+					@Override
+					public void onTransitionCancel(Transition transition){}
+
+					@Override
+					public void onTransitionPause(Transition transition){}
+
+					@Override
+					public void onTransitionResume(Transition transition){}
+				})
 		);
 		nameEditWrap.setVisibility(View.GONE);
 		bioEditWrap.setVisibility(View.GONE);
@@ -894,6 +1175,8 @@ public class ProfileFragment extends LoaderFragment implements OnBackPressedList
 		bio.setVisibility(View.VISIBLE);
 		countersLayout.setVisibility(View.VISIBLE);
 		refreshLayout.setEnabled(true);
+		usernameDomain.setVisibility(View.VISIBLE);
+		qrCodeButton.setVisibility(View.VISIBLE);
 
 		bindHeaderView();
 		V.setVisibilityAnimated(fab, View.VISIBLE);
@@ -938,23 +1221,18 @@ public class ProfileFragment extends LoaderFragment implements OnBackPressedList
 		updateRelationship();
 	}
 
-	@Override
-	public boolean onBackPressed(){
-		if(isInEditMode){
-			if(savingEdits)
-				return true;
-			if(editDirty || aboutFragment.isEditDirty()){
-				new M3AlertDialogBuilder(getActivity())
-						.setTitle(R.string.discard_changes)
-						.setPositiveButton(R.string.discard, (dlg, btn)->exitEditMode())
-						.setNegativeButton(R.string.cancel, null)
-						.show();
-			}else{
-				exitEditMode();
-			}
-			return true;
+	private void onEditModeBackCallback(){
+		if(savingEdits)
+			return;
+		if(editDirty || aboutFragment.isEditDirty()){
+			new M3AlertDialogBuilder(getActivity())
+					.setTitle(R.string.discard_changes)
+					.setPositiveButton(R.string.discard, (dlg, btn)->exitEditMode())
+					.setNegativeButton(R.string.cancel, null)
+					.show();
+		}else{
+			exitEditMode();
 		}
-		return false;
 	}
 
 	private List<Attachment> createFakeAttachments(String url, Drawable drawable){
@@ -968,6 +1246,8 @@ public class ProfileFragment extends LoaderFragment implements OnBackPressedList
 	}
 
 	private void onAvatarClick(View v){
+		if(account==null)
+			return;
 		if(isInEditMode){
 			startImagePicker(AVATAR_RESULT);
 		}else{
@@ -975,19 +1255,21 @@ public class ProfileFragment extends LoaderFragment implements OnBackPressedList
 			if(ava==null)
 				return;
 			int radius=V.dp(25);
-			currentPhotoViewer=new PhotoViewer(getActivity(), createFakeAttachments(account.avatar, ava), 0,
+			currentPhotoViewer=new PhotoViewer(getActivity(), null, createFakeAttachments(account.avatar, ava), 0,
 					null, accountID, new SingleImagePhotoViewerListener(avatar, avatarBorder, new int[]{radius, radius, radius, radius}, this, ()->currentPhotoViewer=null, ()->ava, null, null));
 		}
 	}
 
 	private void onCoverClick(View v){
+		if(account==null)
+			return;
 		if(isInEditMode){
 			startImagePicker(COVER_RESULT);
 		}else{
 			Drawable drawable=cover.getDrawable();
-			if(drawable==null || drawable instanceof ColorDrawable)
+			if(drawable==null || drawable instanceof ColorDrawable || account.headerStatic.endsWith("/missing.png"))
 				return;
-			currentPhotoViewer=new PhotoViewer(getActivity(), createFakeAttachments(account.header, drawable), 0,
+			currentPhotoViewer=new PhotoViewer(getActivity(), null, createFakeAttachments(account.header, drawable), 0,
 					null, accountID, new SingleImagePhotoViewerListener(cover, cover, null, this, ()->currentPhotoViewer=null, ()->drawable, ()->avatarBorder.setTranslationZ(2), ()->avatarBorder.setTranslationZ(0)));
 		}
 	}
@@ -1001,6 +1283,14 @@ public class ProfileFragment extends LoaderFragment implements OnBackPressedList
 		Nav.go(getActivity(), ComposeFragment.class, args);
 	}
 
+	private void onFamiliarFollowersClick(View v){
+		Bundle args=new Bundle();
+		args.putString("account", accountID);
+		args.putParcelable("targetAccount", Parcels.wrap(account));
+		args.putInt("count", familiarFollowers.size());
+		Nav.go(getActivity(), FamiliarFollowerListFragment.class, args);
+	}
+
 	private void startImagePicker(int requestCode){
 		Intent intent=UiUtils.getMediaPickerIntent(new String[]{"image/*"}, 1);
 		startActivityForResult(intent, requestCode);
@@ -1010,9 +1300,16 @@ public class ProfileFragment extends LoaderFragment implements OnBackPressedList
 	public void onActivityResult(int requestCode, int resultCode, Intent data){
 		if(resultCode==Activity.RESULT_OK){
 			if(requestCode==AVATAR_RESULT){
-				editNewAvatar=data.getData();
-				ViewImageLoader.loadWithoutAnimation(avatar, null, new UrlImageLoaderRequest(editNewAvatar, V.dp(100), V.dp(100)));
-				editDirty=true;
+				if(!isTablet){
+					getActivity().setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
+				}
+				int radius=V.dp(25);
+				new AvatarCropper(getActivity(), data.getData(), new SingleImagePhotoViewerListener(avatar, avatarBorder, new int[]{radius, radius, radius, radius}, this, ()->{}, null, null, null), (thumbnail, uri)->{
+					getActivity().setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED);
+					avatar.setImageDrawable(thumbnail);
+					editNewAvatar=uri;
+					editDirty=true;
+				}, ()->getActivity().setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED)).show();
 			}else if(requestCode==COVER_RESULT){
 				editNewCover=data.getData();
 				ViewImageLoader.loadWithoutAnimation(cover, null, new UrlImageLoaderRequest(editNewCover, V.dp(1000), V.dp(1000)));
@@ -1043,6 +1340,13 @@ public class ProfileFragment extends LoaderFragment implements OnBackPressedList
 
 	private boolean isActionButtonInView(){
 		return actionButton.getVisibility()==View.VISIBLE && actionButtonWrap.getTop()+actionButtonWrap.getHeight()>scrollView.getScrollY();
+	}
+
+	@Override
+	public void onProvideAssistContent(AssistContent content){
+		if(account!=null){
+			content.setWebUri(Uri.parse(account.url));
+		}
 	}
 
 	private class ProfilePagerAdapter extends RecyclerView.Adapter<SimpleViewHolder>{
@@ -1080,7 +1384,7 @@ public class ProfileFragment extends LoaderFragment implements OnBackPressedList
 
 		@Override
 		public int getItemCount(){
-			return loaded ? 3 : 0;
+			return loaded ? (isOwnProfile ? 4 : 3) : 0;
 		}
 
 		@Override

@@ -1,6 +1,9 @@
 package org.joinmastodon.android.fragments.discover;
 
+import android.app.Activity;
 import android.app.Fragment;
+import android.content.Intent;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.text.TextUtils;
@@ -11,15 +14,21 @@ import android.widget.FrameLayout;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
+import org.joinmastodon.android.MainActivity;
 import org.joinmastodon.android.R;
 import org.joinmastodon.android.fragments.ScrollableToTop;
+import org.joinmastodon.android.googleservices.GmsClient;
+import org.joinmastodon.android.googleservices.barcodescanner.Barcode;
+import org.joinmastodon.android.googleservices.barcodescanner.BarcodeScanner;
 import org.joinmastodon.android.model.SearchResult;
 import org.joinmastodon.android.ui.OutlineProviders;
 import org.joinmastodon.android.ui.SimpleViewHolder;
 import org.joinmastodon.android.ui.tabs.TabLayout;
 import org.joinmastodon.android.ui.tabs.TabLayoutMediator;
 import org.joinmastodon.android.ui.utils.UiUtils;
+import org.joinmastodon.android.ui.views.NestedRecyclerScrollView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -28,19 +37,19 @@ import androidx.viewpager2.widget.ViewPager2;
 import me.grishka.appkit.Nav;
 import me.grishka.appkit.fragments.AppKitFragment;
 import me.grishka.appkit.fragments.BaseRecyclerFragment;
-import me.grishka.appkit.fragments.OnBackPressedListener;
 import me.grishka.appkit.utils.V;
 
-public class DiscoverFragment extends AppKitFragment implements ScrollableToTop, OnBackPressedListener{
+public class DiscoverFragment extends AppKitFragment implements ScrollableToTop{
 	private static final int QUERY_RESULT=937;
+	private static final int SCAN_RESULT=456;
 
-	private TabLayout tabLayout;
+	private TabLayout tabLayout, searchTabLayout;
 	private ViewPager2 pager;
 	private FrameLayout[] tabViews;
 	private TabLayoutMediator tabLayoutMediator;
 	private boolean searchActive;
 	private FrameLayout searchView;
-	private ImageButton searchBack;
+	private ImageButton searchBack, searchScanQR;
 	private TextView searchText;
 	private View tabsDivider;
 
@@ -52,6 +61,9 @@ public class DiscoverFragment extends AppKitFragment implements ScrollableToTop,
 
 	private String accountID;
 	private String currentQuery;
+	private Intent scannerIntent;
+	private Runnable searchExitCallback=this::exitSearch;
+	private SearchResult.Type searchFilter;
 
 	@Override
 	public void onCreate(Bundle savedInstanceState){
@@ -60,6 +72,7 @@ public class DiscoverFragment extends AppKitFragment implements ScrollableToTop,
 			setRetainInstance(true);
 
 		accountID=getArguments().getString("account");
+		scannerIntent=BarcodeScanner.createIntent(Barcode.FORMAT_QR_CODE, false, true);
 	}
 
 	@Nullable
@@ -68,6 +81,7 @@ public class DiscoverFragment extends AppKitFragment implements ScrollableToTop,
 		LinearLayout view=(LinearLayout) inflater.inflate(R.layout.fragment_discover, container, false);
 
 		tabLayout=view.findViewById(R.id.tabbar);
+		searchTabLayout=view.findViewById(R.id.search_tabbar);
 		pager=view.findViewById(R.id.pager);
 
 		tabViews=new FrameLayout[4];
@@ -169,10 +183,16 @@ public class DiscoverFragment extends AppKitFragment implements ScrollableToTop,
 		searchBack.setImportantForAccessibility(searchActive ? View.IMPORTANT_FOR_ACCESSIBILITY_YES : View.IMPORTANT_FOR_ACCESSIBILITY_NO);
 		searchBack.setOnClickListener(v->exitSearch());
 		if(searchActive){
-			searchBack.setImageResource(R.drawable.ic_arrow_back);
+			searchBack.setImageResource(me.grishka.appkit.R.drawable.ic_arrow_back);
 			pager.setVisibility(View.GONE);
 			tabLayout.setVisibility(View.GONE);
 			searchView.setVisibility(View.VISIBLE);
+		}
+		searchScanQR=view.findViewById(R.id.search_scan_qr);
+		if(!GmsClient.isGooglePlayServicesAvailable(getActivity())){
+			searchScanQR.setVisibility(View.GONE);
+		}else{
+			searchScanQR.setOnClickListener(v->openQrScanner());
 		}
 
 		View searchWrap=view.findViewById(R.id.search_wrap);
@@ -187,6 +207,37 @@ public class DiscoverFragment extends AppKitFragment implements ScrollableToTop,
 			Nav.goForResult(getActivity(), SearchQueryFragment.class, args, QUERY_RESULT, DiscoverFragment.this);
 		});
 		tabsDivider=view.findViewById(R.id.tabs_divider);
+
+		searchTabLayout.setTabTextColors(UiUtils.getThemeColor(getActivity(), R.attr.colorM3OnSurfaceVariant), UiUtils.getThemeColor(getActivity(), R.attr.colorM3Primary));
+		searchTabLayout.setTabTextSize(V.dp(14));
+		searchTabLayout.addTab(searchTabLayout.newTab().setText(R.string.posts));
+		searchTabLayout.addTab(searchTabLayout.newTab().setText(R.string.hashtags));
+		searchTabLayout.addTab(searchTabLayout.newTab().setText(R.string.search_people));
+		searchTabLayout.addOnTabSelectedListener(new TabLayout.OnTabSelectedListener(){
+			@Override
+			public void onTabSelected(TabLayout.Tab tab){
+				searchFilter=switch(tab.getPosition()){
+					case 0 -> SearchResult.Type.STATUS;
+					case 1 -> SearchResult.Type.HASHTAG;
+					case 2 -> SearchResult.Type.ACCOUNT;
+					default -> throw new IllegalStateException("Unexpected value: " + tab.getPosition());
+				};
+				searchFragment.setQuery(currentQuery, searchFilter);
+			}
+
+			@Override
+			public void onTabUnselected(TabLayout.Tab tab){}
+
+			@Override
+			public void onTabReselected(TabLayout.Tab tab){}
+		});
+
+		NestedRecyclerScrollView scroller=view.findViewById(R.id.scroller);
+		scroller.setScrollableChildSupplier(()->{
+			View fragmentView=getFragmentForPage(tabLayout.getSelectedTabPosition()).getView();
+			return fragmentView==null ? null : fragmentView.findViewById(R.id.list);
+		});
+		scroller.setTakePriorityOverChildViews(true);
 
 		return view;
 	}
@@ -210,11 +261,12 @@ public class DiscoverFragment extends AppKitFragment implements ScrollableToTop,
 			searchActive=true;
 			pager.setVisibility(View.GONE);
 			tabLayout.setVisibility(View.GONE);
+			searchTabLayout.setVisibility(View.VISIBLE);
 			searchView.setVisibility(View.VISIBLE);
-			searchBack.setImageResource(R.drawable.ic_arrow_back);
+			searchBack.setImageResource(me.grishka.appkit.R.drawable.ic_arrow_back);
 			searchBack.setEnabled(true);
 			searchBack.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_YES);
-			tabsDivider.setVisibility(View.GONE);
+			addBackCallback(searchExitCallback);
 		}
 	}
 
@@ -224,13 +276,14 @@ public class DiscoverFragment extends AppKitFragment implements ScrollableToTop,
 		searchActive=false;
 		pager.setVisibility(View.VISIBLE);
 		tabLayout.setVisibility(View.VISIBLE);
+		searchTabLayout.setVisibility(View.GONE);
 		searchView.setVisibility(View.GONE);
 		searchText.setText(R.string.search_mastodon);
 		searchBack.setImageResource(R.drawable.ic_search_24px);
 		searchBack.setEnabled(false);
 		searchBack.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_NO);
-		tabsDivider.setVisibility(View.VISIBLE);
 		currentQuery=null;
+		removeBackCallback(searchExitCallback);
 	}
 
 	private Fragment getFragmentForPage(int page){
@@ -244,28 +297,52 @@ public class DiscoverFragment extends AppKitFragment implements ScrollableToTop,
 	}
 
 	@Override
-	public boolean onBackPressed(){
-		if(searchActive){
-			exitSearch();
-			return true;
-		}
-		return false;
-	}
-
-	@Override
 	public void onFragmentResult(int reqCode, boolean success, Bundle result){
 		if(reqCode==QUERY_RESULT && success){
 			enterSearch();
 			currentQuery=result.getString("query");
-			SearchResult.Type type;
 			if(result.containsKey("filter")){
-				type=SearchResult.Type.values()[result.getInt("filter")];
+				searchFilter=SearchResult.Type.values()[result.getInt("filter")];
 			}else{
-				type=null;
+				searchFilter=SearchResult.Type.STATUS;
 			}
-			searchFragment.setQuery(currentQuery, type);
+			searchFragment.setQuery(currentQuery, searchFilter);
 			searchText.setText(currentQuery);
+			updateSearchTabBar();
 		}
+	}
+
+	@Override
+	public void onActivityResult(int requestCode, int resultCode, Intent data){
+		if(requestCode==SCAN_RESULT && resultCode==Activity.RESULT_OK && BarcodeScanner.isValidResult(data)){
+			Barcode code=BarcodeScanner.getResult(data);
+			if(code!=null){
+				if(code.rawValue.startsWith("https:") || code.rawValue.startsWith("http:")){
+					((MainActivity)getActivity()).handleURL(Uri.parse(code.rawValue), accountID);
+				}else{
+					Toast.makeText(getActivity(), R.string.link_not_supported, Toast.LENGTH_SHORT).show();
+				}
+			}
+		}
+	}
+
+	private void openQrScanner(){
+		if(scannerIntent.resolveActivity(getActivity().getPackageManager())!=null){
+			startActivityForResult(scannerIntent, SCAN_RESULT);
+		}else{
+			BarcodeScanner.installScannerModule(getActivity(), ()->startActivityForResult(scannerIntent, SCAN_RESULT));
+		}
+	}
+
+	private void updateSearchTabBar(){
+		int tab=switch(searchFilter){
+			case STATUS -> 0;
+			case HASHTAG -> 1;
+			case ACCOUNT -> 2;
+		};
+		if(searchTabLayout.getSelectedTabPosition()==tab)
+			return;
+		searchTabLayout.selectTab(searchTabLayout.getTabAt(tab));
 	}
 
 	private class DiscoverPagerAdapter extends RecyclerView.Adapter<SimpleViewHolder>{

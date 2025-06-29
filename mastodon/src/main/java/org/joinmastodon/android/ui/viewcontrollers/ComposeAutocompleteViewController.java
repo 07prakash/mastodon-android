@@ -40,7 +40,6 @@ import me.grishka.appkit.api.ErrorResponse;
 import me.grishka.appkit.imageloader.ImageLoaderRecyclerAdapter;
 import me.grishka.appkit.imageloader.ImageLoaderViewHolder;
 import me.grishka.appkit.imageloader.ListImageLoaderWrapper;
-import me.grishka.appkit.imageloader.RecyclerViewDelegate;
 import me.grishka.appkit.imageloader.requests.ImageLoaderRequest;
 import me.grishka.appkit.imageloader.requests.UrlImageLoaderRequest;
 import me.grishka.appkit.utils.BindableViewHolder;
@@ -123,7 +122,7 @@ public class ComposeAutocompleteViewController{
 			}
 		});
 
-		imgLoader=new ListImageLoaderWrapper(activity, list, new RecyclerViewDelegate(list), null);
+		imgLoader=new ListImageLoaderWrapper(activity, list, list, null);
 	}
 
 	public void setText(String text){
@@ -209,6 +208,7 @@ public class ComposeAutocompleteViewController{
 					.filter(e -> !startsWithSearch.contains(e))
 					.filter(e -> e.shortcode.toLowerCase().contains(_text.toLowerCase())))
 					.map(WrappedEmoji::new)
+					.limit(50)
 					.collect(Collectors.toList());
 			emptyButtonAdapter.setVisible(emojis.isEmpty());
 			UiUtils.updateList(oldList, emojis, list, emojisAdapter, (e1, e2)->e1.emoji.shortcode.equals(e2.emoji.shortcode));
@@ -245,7 +245,7 @@ public class ComposeAutocompleteViewController{
 						if(mode!=Mode.USERS)
 							return;
 						List<AccountViewModel> oldList=users;
-						users=result.accounts.stream().map(a->new AccountViewModel(a, accountID)).collect(Collectors.toList());
+						users=result.accounts.stream().map(a->new AccountViewModel(a, accountID, activity)).collect(Collectors.toList());
 						if(isLoading){
 							isLoading=false;
 							if(users.size()>=LOADING_FAKE_USER_COUNT){

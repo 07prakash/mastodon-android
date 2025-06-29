@@ -4,16 +4,27 @@ import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.animation.AnimatorSet;
 import android.animation.ObjectAnimator;
+import android.annotation.SuppressLint;
 import android.app.Activity;
+import android.content.Context;
+import android.content.Intent;
 import android.content.res.Configuration;
+import android.os.Build;
 import android.os.Bundle;
+import android.os.VibrationEffect;
+import android.text.SpannableStringBuilder;
 import android.text.TextUtils;
+import android.text.style.ForegroundColorSpan;
+import android.text.style.TypefaceSpan;
+import android.text.style.UnderlineSpan;
 import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.ViewStub;
+import android.view.ViewTreeObserver;
 import android.view.accessibility.AccessibilityNodeInfo;
 import android.view.animation.AnimationUtils;
 import android.widget.Button;
@@ -22,18 +33,22 @@ import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 import android.widget.Toolbar;
 
 import com.squareup.otto.Subscribe;
 
+import org.joinmastodon.android.BuildConfig;
 import org.joinmastodon.android.E;
 import org.joinmastodon.android.R;
 import org.joinmastodon.android.api.MastodonAPIRequest;
+import org.joinmastodon.android.api.requests.catalog.GetDonationCampaigns;
 import org.joinmastodon.android.api.requests.markers.SaveMarkers;
 import org.joinmastodon.android.api.requests.timelines.GetHomeTimeline;
 import org.joinmastodon.android.api.requests.timelines.GetListTimeline;
 import org.joinmastodon.android.api.requests.timelines.GetPublicTimeline;
 import org.joinmastodon.android.api.session.AccountSessionManager;
+import org.joinmastodon.android.events.DismissDonationCampaignBannerEvent;
 import org.joinmastodon.android.events.SelfUpdateStateChangedEvent;
 import org.joinmastodon.android.fragments.settings.SettingsMainFragment;
 import org.joinmastodon.android.model.CacheablePaginatedResponse;
@@ -41,21 +56,31 @@ import org.joinmastodon.android.model.FilterContext;
 import org.joinmastodon.android.model.FollowList;
 import org.joinmastodon.android.model.Status;
 import org.joinmastodon.android.model.TimelineMarkers;
+import org.joinmastodon.android.model.donations.DonationCampaign;
 import org.joinmastodon.android.ui.displayitems.GapStatusDisplayItem;
 import org.joinmastodon.android.ui.displayitems.StatusDisplayItem;
+import org.joinmastodon.android.ui.sheets.DonationSheet;
+import org.joinmastodon.android.ui.sheets.DonationSuccessfulSheet;
 import org.joinmastodon.android.ui.utils.DiscoverInfoBannerHelper;
+import org.joinmastodon.android.ui.utils.UiUtils;
 import org.joinmastodon.android.ui.viewcontrollers.HomeTimelineMenuController;
 import org.joinmastodon.android.ui.viewcontrollers.ToolbarDropdownMenuController;
 import org.joinmastodon.android.ui.views.FixedAspectRatioImageView;
+import org.joinmastodon.android.ui.views.NestedRecyclerScrollView;
+import org.joinmastodon.android.ui.views.NewPostsButtonContainer;
 import org.joinmastodon.android.updater.GithubSelfUpdater;
 import org.parceler.Parcels;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import androidx.annotation.NonNull;
+import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import me.grishka.appkit.Nav;
 import me.grishka.appkit.api.Callback;
@@ -64,14 +89,17 @@ import me.grishka.appkit.api.SimpleCallback;
 import me.grishka.appkit.utils.CubicBezierInterpolator;
 import me.grishka.appkit.utils.MergeRecyclerAdapter;
 import me.grishka.appkit.utils.V;
+import me.grishka.appkit.views.BottomSheet;
 
 public class HomeTimelineFragment extends StatusListFragment implements ToolbarDropdownMenuController.HostFragment{
+	private static final int DONATION_RESULT=211;
+
 	private ImageButton fab;
 	private LinearLayout listsDropdown;
 	private FixedAspectRatioImageView listsDropdownArrow;
 	private TextView listsDropdownText;
 	private Button newPostsBtn;
-	private View newPostsBtnWrap;
+	private NewPostsButtonContainer newPostsBtnWrap;
 	private boolean newPostsBtnShown;
 	private AnimatorSet currentNewPostsAnim;
 	private ToolbarDropdownMenuController dropdownController;
@@ -81,11 +109,21 @@ public class HomeTimelineFragment extends StatusListFragment implements ToolbarD
 	private FollowList currentList;
 	private MergeRecyclerAdapter mergeAdapter;
 	private DiscoverInfoBannerHelper localTimelineBannerHelper;
+	private View donationBanner;
+	private boolean donationBannerDismissing;
+	private NestedRecyclerScrollView scrollWrapper;
+
+	private String scrollBackItemID;
+	private int scrollBackItemOffset, scrollBackItemIndex;
+	private long scrollBackTime;
 
 	private String maxID;
 	private String lastSavedMarkerID;
+	private DonationCampaign currentDonationCampaign;
+	private BottomSheet donationSheet;
 
 	public HomeTimelineFragment(){
+		setLayout(R.layout.fragment_loader_hiding_toolbar);
 		setListLayoutId(R.layout.fragment_timeline);
 	}
 
@@ -93,6 +131,32 @@ public class HomeTimelineFragment extends StatusListFragment implements ToolbarD
 	public void onCreate(Bundle savedInstanceState){
 		super.onCreate(savedInstanceState);
 		localTimelineBannerHelper=new DiscoverInfoBannerHelper(DiscoverInfoBannerHelper.BannerType.LOCAL_TIMELINE, accountID);
+
+		if(AccountSessionManager.get(accountID).isEligibleForDonations()){
+			GetDonationCampaigns req=new GetDonationCampaigns(Locale.getDefault().toLanguageTag().replace('-', '_'), String.valueOf(AccountSessionManager.get(accountID).getDonationSeed()), null);
+			if(getActivity().getSharedPreferences("debug", Context.MODE_PRIVATE).getBoolean("donationsStaging", false)){
+				req.setStaging(true);
+			}
+			req.setCallback(new Callback<>(){
+						@Override
+						public void onSuccess(DonationCampaign result){
+							if(result==null)
+								return;
+							AccountSessionManager.getInstance().runIfDonationCampaignNotDismissed(result.id, ()->showDonationBanner(result));
+						}
+
+						@Override
+						public void onError(ErrorResponse error){}
+					})
+					.execNoAuth("");
+		}
+		E.register(this);
+	}
+
+	@Override
+	public void onDestroy(){
+		super.onDestroy();
+		E.unregister(this);
 	}
 
 	@Override
@@ -201,6 +265,7 @@ public class HomeTimelineFragment extends StatusListFragment implements ToolbarD
 		}
 	}
 
+	@SuppressLint("ClickableViewAccessibility")
 	@Override
 	public void onViewCreated(View view, Bundle savedInstanceState){
 		super.onViewCreated(view, savedInstanceState);
@@ -219,20 +284,63 @@ public class HomeTimelineFragment extends StatusListFragment implements ToolbarD
 			newPostsBtnWrap.setAlpha(0f);
 			newPostsBtnWrap.setTranslationY(V.dp(-56));
 		}
+		newPostsBtnWrap.setOnHideButtonListener(this::hideNewPostsButton);
 		updateToolbarLogo();
 		list.addOnScrollListener(new RecyclerView.OnScrollListener(){
+			private HashSet<GapStatusDisplayItem> gaps=new HashSet<>();
+
 			@Override
 			public void onScrolled(@NonNull RecyclerView recyclerView, int dx, int dy){
 				if(newPostsBtnShown && list.getChildAdapterPosition(list.getChildAt(0))<=getMainAdapterOffset()){
 					hideNewPostsButton();
 				}
+				for(StatusDisplayItem item:displayItems){
+					if(item instanceof GapStatusDisplayItem gap){
+						gaps.add(gap);
+					}
+				}
+				if(gaps.isEmpty())
+					return;
+				for(int i=0;i<list.getChildCount();i++){
+					View child=list.getChildAt(i);
+					if(list.getChildViewHolder(child) instanceof GapStatusDisplayItem.Holder holder){
+						GapStatusDisplayItem gap=holder.getItem();
+						if(!gap.visible){
+							gap.visible=true;
+							gap.enteredFromTop=child.getTop()<list.getHeight()/2;
+							holder.text.setText(gap.enteredFromTop ? R.string.load_missing_posts_above : R.string.load_missing_posts_below);
+						}
+						gaps.remove(gap);
+					}
+				}
+				for(GapStatusDisplayItem gap:gaps){
+					gap.visible=false;
+				}
+				gaps.clear();
 			}
 		});
+		View bottomOverlays=view.findViewById(R.id.bottom_overlays);
+		NestedRecyclerScrollView scroller=view.findViewById(R.id.scroller);
+		scroller.setScrollableChildSupplier(()->list);
+		scroller.setTakePriorityOverChildViews(true);
+		scroller.setOnScrollChangeListener((v, scrollX, scrollY, oldScrollX, oldScrollY)->{
+			bottomOverlays.setTranslationY(scrollY-getToolbar().getHeight());
+		});
+		scroller.getViewTreeObserver().addOnPreDrawListener(new ViewTreeObserver.OnPreDrawListener(){
+			@Override
+			public boolean onPreDraw(){
+				scroller.getViewTreeObserver().removeOnPreDrawListener(this);
+				bottomOverlays.setTranslationY(scroller.getScrollY()-getToolbar().getHeight());
+				return true;
+			}
+		});
+		scrollWrapper=scroller;
 
 		if(GithubSelfUpdater.needSelfUpdating()){
-			E.register(this);
 			updateUpdateState(GithubSelfUpdater.getInstance().getState());
 		}
+		if(currentDonationCampaign!=null)
+			showDonationBanner(currentDonationCampaign);
 	}
 
 	@Override
@@ -245,6 +353,10 @@ public class HomeTimelineFragment extends StatusListFragment implements ToolbarD
 			state=updater.getState();
 		if(state!=GithubSelfUpdater.UpdateState.NO_UPDATE && state!=GithubSelfUpdater.UpdateState.CHECKING)
 			getToolbar().getMenu().findItem(R.id.settings).setIcon(R.drawable.ic_settings_updateready_24px);
+
+		if("debug".equals(BuildConfig.BUILD_TYPE)){
+			menu.add(0, 1, 0, "Make a gap");
+		}
 	}
 
 	@Override
@@ -257,6 +369,17 @@ public class HomeTimelineFragment extends StatusListFragment implements ToolbarD
 		}else if(id==R.id.edit_list){
 			args.putParcelable("list", Parcels.wrap(currentList));
 			Nav.go(getActivity(), EditListFragment.class, args);
+		}else if(id==1){
+			if(data.size()<35){
+				Toast.makeText(getActivity(), "Too few posts. Load at least 35", Toast.LENGTH_SHORT).show();
+				return true;
+			}
+			Status gapStatus=data.get(1);
+			gapStatus.hasGapAfter=true;
+			onStatusUpdated(gapStatus);
+			for(Status s:new ArrayList<>(data.subList(2, 32))){
+				removeStatus(s);
+			}
 		}
 		return true;
 	}
@@ -334,6 +457,10 @@ public class HomeTimelineFragment extends StatusListFragment implements ToolbarD
 							result.get(result.size()-1).hasGapAfter=true;
 							toAdd=result;
 						}
+						if(!(toAdd instanceof ArrayList<?>))
+							toAdd=new ArrayList<>(toAdd);
+						Set<String> existingPostIDs=data.stream().map(s->s.id).collect(Collectors.toSet());
+						toAdd.removeIf(s->existingPostIDs.contains(s.id));
 						if(needCache)
 							AccountSessionManager.get(accountID).filterStatuses(toAdd, FilterContext.HOME);
 						if(!toAdd.isEmpty()){
@@ -356,13 +483,31 @@ public class HomeTimelineFragment extends StatusListFragment implements ToolbarD
 	public void onGapClick(GapStatusDisplayItem.Holder item){
 		if(dataLoading)
 			return;
-		item.getItem().loading=true;
+		GapStatusDisplayItem gap=item.getItem();
+		gap.loading=true;
 		V.setVisibilityAnimated(item.progress, View.VISIBLE);
 		V.setVisibilityAnimated(item.text, View.GONE);
-		GapStatusDisplayItem gap=item.getItem();
 		dataLoading=true;
 		boolean needCache=listMode==ListMode.FOLLOWING;
-		loadAdditionalPosts(item.getItemID(), null, 20, null, new Callback<>(){
+		boolean insertBelowGap=!gap.enteredFromTop;
+		String maxID, minID;
+		if(gap.enteredFromTop){
+			maxID=null;
+			int gapPos=displayItems.indexOf(gap);
+			if(displayItems.size()==gapPos){ // The gap is the last item in the list somehow
+				if(!preloader.isMoreAvailable()){ // Can't load any more posts anyway, just remove the gap then
+					displayItems.remove(gapPos);
+					adapter.notifyItemRemoved(gapPos);
+				}
+				return;
+			}else{
+				minID=displayItems.get(gapPos+1).parentID;
+			}
+		}else{
+			maxID=item.getItemID();
+			minID=null;
+		}
+		loadAdditionalPosts(maxID, minID, 20, null, new Callback<>(){
 					@Override
 					public void onSuccess(List<Status> result){
 
@@ -380,9 +525,9 @@ public class HomeTimelineFragment extends StatusListFragment implements ToolbarD
 							if(gapStatus!=null){
 								gapStatus.hasGapAfter=false;
 								if(needCache)
-									AccountSessionManager.getInstance().getAccount(accountID).getCacheController().putHomeTimeline(Collections.singletonList(gapStatus), false);
+									AccountSessionManager.getInstance().getAccount(accountID).getCacheController().putHomeTimeline(List.of(gapStatus), false);
 							}
-						}else{
+						}else if(insertBelowGap){
 							Set<String> idsBelowGap=new HashSet<>();
 							boolean belowGap=false;
 							int gapPostIndex=0;
@@ -393,7 +538,7 @@ public class HomeTimelineFragment extends StatusListFragment implements ToolbarD
 									belowGap=true;
 									s.hasGapAfter=false;
 									if(needCache)
-										AccountSessionManager.getInstance().getAccount(accountID).getCacheController().putHomeTimeline(Collections.singletonList(s), false);
+										AccountSessionManager.getInstance().getAccount(accountID).getCacheController().putHomeTimeline(List.of(s), false);
 								}else{
 									gapPostIndex++;
 								}
@@ -411,8 +556,8 @@ public class HomeTimelineFragment extends StatusListFragment implements ToolbarD
 							}
 							if(needCache)
 								AccountSessionManager.get(accountID).filterStatuses(result, FilterContext.HOME);
-							List<StatusDisplayItem> targetList=displayItems.subList(gapPos, gapPos+1);
-							targetList.clear();
+							List<StatusDisplayItem> targetList=displayItems.subList(gapPos, gapPos+1); // Get a sub-list that contains the gap item
+							targetList.clear(); // remove the gap item
 							List<Status> insertedPosts=data.subList(gapPostIndex+1, gapPostIndex+1);
 							for(Status s:result){
 								if(idsBelowGap.contains(s.id))
@@ -429,6 +574,61 @@ public class HomeTimelineFragment extends StatusListFragment implements ToolbarD
 							}
 							if(needCache)
 								AccountSessionManager.getInstance().getAccount(accountID).getCacheController().putHomeTimeline(insertedPosts, false);
+						}else{
+							Set<String> idsAboveGap=new HashSet<>();
+							int gapPostIndex=0;
+							Status gapPost=null;
+							for(Status s:data){
+								if(s.id.equals(gap.parentID)){
+									gapPost=s;
+									break;
+								}else{
+									idsAboveGap.add(s.id);
+									gapPostIndex++;
+								}
+							}
+							if(gapPost==null)
+								return;
+							boolean needAdjustScroll=false;
+							int scrollTop=0;
+							for(int i=0;i<list.getChildCount();i++){
+								View child=list.getChildAt(i);
+								if(list.getChildViewHolder(child) instanceof GapStatusDisplayItem.Holder gapHolder && gapHolder.getItem()==gap){
+									needAdjustScroll=true;
+									scrollTop=child.getBottom()+1;
+									break;
+								}
+							}
+							List<StatusDisplayItem> targetList=displayItems.subList(gapPos+1, gapPos+1);
+							List<Status> insertedPosts=data.subList(gapPostIndex+1, gapPostIndex+1);
+							for(int i=result.size()-1;i>=0;i--){
+								Status s=result.get(i);
+								if(idsAboveGap.contains(s.id))
+									break;
+								targetList.addAll(0, buildDisplayItems(s));
+								insertedPosts.add(0, s);
+							}
+							int addedItemCount=targetList.size();
+							boolean gapRemoved=false;
+							if(insertedPosts.size()<result.size()){ // There was an intersection, remove the gap
+								gapRemoved=true;
+								gapPost.hasGapAfter=false;
+								if(needCache)
+									AccountSessionManager.getInstance().getAccount(accountID).getCacheController().putHomeTimeline(List.of(gapPost), false);
+								displayItems.remove(gapPos);
+								adapter.notifyItemRemoved(getMainAdapterOffset()+gapPos);
+							}else{
+								gap.loading=false;
+								adapter.notifyItemChanged(getMainAdapterOffset()+gapPos);
+							}
+							if(!insertedPosts.isEmpty()){
+								if(needCache)
+									AccountSessionManager.getInstance().getAccount(accountID).getCacheController().putHomeTimeline(insertedPosts, false);
+								adapter.notifyItemRangeInserted(getMainAdapterOffset()+gapPos+(gapRemoved ? 0 : 1), addedItemCount);
+								if(needAdjustScroll){
+									((LinearLayoutManager)list.getLayoutManager()).scrollToPositionWithOffset(getMainAdapterOffset()+gapPos+(gapRemoved ? 0 : 1)+addedItemCount, scrollTop);
+								}
+							}
 						}
 					}
 
@@ -553,6 +753,7 @@ public class HomeTimelineFragment extends StatusListFragment implements ToolbarD
 			@Override
 			public void onAnimationEnd(Animator animation){
 				newPostsBtnWrap.setVisibility(View.GONE);
+				newPostsBtn.setTranslationY(0);
 				currentNewPostsAnim=null;
 			}
 		});
@@ -563,7 +764,7 @@ public class HomeTimelineFragment extends StatusListFragment implements ToolbarD
 	private void onNewPostsBtnClick(View v){
 		if(newPostsBtnShown){
 			hideNewPostsButton();
-			scrollToTop();
+			smoothScrollRecyclerViewToTop(list);
 		}
 	}
 
@@ -584,9 +785,8 @@ public class HomeTimelineFragment extends StatusListFragment implements ToolbarD
 	@Override
 	public void onDestroyView(){
 		super.onDestroyView();
-		if(GithubSelfUpdater.needSelfUpdating()){
-			E.unregister(this);
-		}
+		donationBanner=null;
+		donationBannerDismissing=false;
 	}
 
 	private void updateUpdateState(GithubSelfUpdater.UpdateState state){
@@ -597,6 +797,13 @@ public class HomeTimelineFragment extends StatusListFragment implements ToolbarD
 	@Subscribe
 	public void onSelfUpdateStateChanged(SelfUpdateStateChangedEvent ev){
 		updateUpdateState(ev.state);
+	}
+
+	@Subscribe
+	public void onDismissDonationCampaignBanner(DismissDonationCampaignBannerEvent ev){
+		if(currentDonationCampaign!=null && ev.campaignID.equals(currentDonationCampaign.id)){
+			dismissDonationBanner();
+		}
 	}
 
 	@Override
@@ -653,12 +860,157 @@ public class HomeTimelineFragment extends StatusListFragment implements ToolbarD
 		super.onDataLoaded(d, more);
 	}
 
+	@Override
+	public void onActivityResult(int requestCode, int resultCode, Intent data){
+		if(requestCode==DONATION_RESULT){
+			if(donationSheet!=null)
+				donationSheet.dismissWithoutAnimation();
+			if(resultCode==Activity.RESULT_OK){
+				new DonationSuccessfulSheet(getActivity(), accountID, data.getStringExtra("postText")).showWithoutAnimation();
+			}
+		}
+	}
+
+	@Override
+	public void scrollToTop(){
+		if(list.getChildCount()==0)
+			return;
+		scrollWrapper.smoothScrollTo(0, 0);
+		View topChild=list.getLayoutManager().getChildAt(0);
+		if(list.getChildAdapterPosition(topChild)==0){
+			if(topChild.getTop()==list.getPaddingTop() && scrollBackItemID!=null && System.currentTimeMillis()-scrollBackTime<5*60_000){
+				int indexWithinPost=0;
+				for(int i=0;i<displayItems.size();i++){
+					StatusDisplayItem item=displayItems.get(i);
+					if(item.parentID.equals(scrollBackItemID)){
+						if(indexWithinPost==scrollBackItemIndex){
+							((LinearLayoutManager)list.getLayoutManager()).scrollToPositionWithOffset(i+getMainAdapterOffset(), scrollBackItemOffset);
+							list.getViewTreeObserver().addOnPreDrawListener(new ViewTreeObserver.OnPreDrawListener(){
+								@Override
+								public boolean onPreDraw(){
+									list.getViewTreeObserver().removeOnPreDrawListener(this);
+									list.scrollBy(0, V.dp(-300));
+									list.smoothScrollBy(0, V.dp(300));
+									return true;
+								}
+							});
+							if(Build.VERSION.SDK_INT>=Build.VERSION_CODES.S)
+								UiUtils.playVibrationEffectIfSupported(getActivity(), VibrationEffect.Composition.PRIMITIVE_THUD);
+							return;
+						}
+						indexWithinPost++;
+					}
+				}
+			}else{
+				smoothScrollRecyclerViewToTop(list);
+				return;
+			}
+		}else if(list.getChildViewHolder(topChild) instanceof StatusDisplayItem.Holder<?> itemHolder){
+			int postIndex;
+			String id=itemHolder.getItemID();
+			for(postIndex=0;postIndex<data.size();postIndex++){
+				if(data.get(postIndex).id.equals(id))
+					break;
+			}
+			if(postIndex>1){
+				scrollBackItemID=id;
+				scrollBackItemIndex=0;
+				for(StatusDisplayItem item:displayItems){
+					if(item.parentID.equals(id)){
+						if(item==itemHolder.getItem())
+							break;
+						scrollBackItemIndex++;
+					}
+				}
+				scrollBackItemOffset=topChild.getTop();
+				scrollBackTime=System.currentTimeMillis();
+			}else{
+				scrollBackItemID=null;
+			}
+		}
+		smoothScrollRecyclerViewToTop(list);
+		if(Build.VERSION.SDK_INT>=Build.VERSION_CODES.S)
+			UiUtils.playVibrationEffectIfSupported(getActivity(), VibrationEffect.Composition.PRIMITIVE_QUICK_RISE);
+	}
+
 	private String getCurrentListTitle(){
 		return switch(listMode){
 			case FOLLOWING -> getString(R.string.timeline_following);
 			case LOCAL -> getString(R.string.local_timeline);
 			case LIST -> currentList.title;
 		};
+	}
+
+	private void showDonationBanner(DonationCampaign campaign){
+		if(getActivity()==null)
+			return;
+		currentDonationCampaign=campaign;
+		if(donationBanner==null){
+			ViewStub stub=contentView.findViewById(R.id.donation_banner);
+			donationBanner=stub.inflate();
+			donationBanner.findViewById(R.id.banner_dismiss).setOnClickListener(v->{
+				AccountSessionManager.getInstance().markDonationCampaignAsDismissed(currentDonationCampaign.id);
+				dismissDonationBanner();
+			});
+			donationBanner.setOnClickListener(v->openDonationSheet());
+		}else{
+			donationBanner.setVisibility(View.VISIBLE);
+		}
+		TextView text=donationBanner.findViewById(R.id.banner_text);
+		SpannableStringBuilder ssb=new SpannableStringBuilder(campaign.bannerMessage);
+		if(!campaign.bannerMessage.endsWith("\n"))
+			ssb.append(' ');
+		int start=ssb.length();
+		ssb.append(campaign.bannerButtonText.trim());
+		ssb.setSpan(new ForegroundColorSpan(getResources().getColor(R.color.masterialDark_colorGoldenrodContainer, getActivity().getTheme())), start, ssb.length(), 0);
+		ssb.setSpan(new UnderlineSpan(), start, ssb.length(), 0);
+		ssb.setSpan(new TypefaceSpan("sans-serif-medium"), start, ssb.length(), 0);
+		text.setText(ssb);
+		donationBanner.getViewTreeObserver().addOnPreDrawListener(new ViewTreeObserver.OnPreDrawListener(){
+			@Override
+			public boolean onPreDraw(){
+				donationBanner.getViewTreeObserver().removeOnPreDrawListener(this);
+
+				AnimatorSet set=new AnimatorSet();
+				set.playTogether(
+						ObjectAnimator.ofFloat(donationBanner, View.TRANSLATION_Y, donationBanner.getHeight(), 0),
+						ObjectAnimator.ofFloat(fab, View.TRANSLATION_Y, -donationBanner.getHeight())
+				);
+				set.setDuration(250);
+				set.setInterpolator(CubicBezierInterpolator.DEFAULT);
+				set.start();
+
+				return true;
+			}
+		});
+	}
+
+	private void dismissDonationBanner(){
+		if(donationBanner==null || donationBannerDismissing)
+			return;
+		AnimatorSet set=new AnimatorSet();
+		set.playTogether(
+				ObjectAnimator.ofFloat(donationBanner, View.TRANSLATION_Y, donationBanner.getHeight()),
+				ObjectAnimator.ofFloat(fab, View.TRANSLATION_Y, 0)
+		);
+		set.setDuration(250);
+		set.setInterpolator(CubicBezierInterpolator.DEFAULT);
+		set.addListener(new AnimatorListenerAdapter(){
+			@Override
+			public void onAnimationEnd(Animator animation){
+				donationBanner.setVisibility(View.GONE);
+				donationBannerDismissing=false;
+			}
+		});
+		donationBannerDismissing=true;
+		set.start();
+		currentDonationCampaign=null;
+	}
+
+	private void openDonationSheet(){
+		donationSheet=new DonationSheet(getActivity(), currentDonationCampaign, accountID, intent->startActivityForResult(intent, DONATION_RESULT));
+		donationSheet.setOnDismissListener(dialog->donationSheet=null);
+		donationSheet.show();
 	}
 
 	private enum ListMode{

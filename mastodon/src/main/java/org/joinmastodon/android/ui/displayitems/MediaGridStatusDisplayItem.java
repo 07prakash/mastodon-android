@@ -1,9 +1,5 @@
 package org.joinmastodon.android.ui.displayitems;
 
-import android.animation.Animator;
-import android.animation.AnimatorListenerAdapter;
-import android.animation.AnimatorSet;
-import android.animation.ObjectAnimator;
 import android.app.Activity;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
@@ -13,9 +9,7 @@ import android.util.Pair;
 import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.ViewTreeObserver;
 import android.widget.FrameLayout;
-import android.widget.ImageButton;
 import android.widget.TextView;
 
 import org.joinmastodon.android.R;
@@ -45,7 +39,6 @@ import java.util.Optional;
 import me.grishka.appkit.imageloader.ImageLoaderViewHolder;
 import me.grishka.appkit.imageloader.requests.ImageLoaderRequest;
 import me.grishka.appkit.imageloader.requests.UrlImageLoaderRequest;
-import me.grishka.appkit.utils.CubicBezierInterpolator;
 import me.grishka.appkit.utils.V;
 
 public class MediaGridStatusDisplayItem extends StatusDisplayItem{
@@ -110,6 +103,7 @@ public class MediaGridStatusDisplayItem extends StatusDisplayItem{
 		private static final ColorDrawable drawableForWhenThereIsNoBlurhash=new ColorDrawable(0xffffffff);
 		private final TextView hideSensitiveButton;
 		private final TextView sensitiveText;
+		private boolean thereAreFailedImages;
 
 		public Holder(Activity activity, ViewGroup parent){
 			super(new FrameLayoutThatOnlyMeasuresFirstChild(activity));
@@ -136,6 +130,8 @@ public class MediaGridStatusDisplayItem extends StatusDisplayItem{
 			sensitiveOverlayBG.setDrawableByLayerId(R.id.right_drawable, new SpoilerStripesDrawable(true));
 			sensitiveOverlay.setBackground(sensitiveOverlayBG);
 			sensitiveOverlay.setOnClickListener(v->revealSensitive());
+			sensitiveOverlay.setOutlineProvider(OutlineProviders.roundedRect(8));
+			sensitiveOverlay.setClipToOutline(true);
 			hideSensitiveButton.setOnClickListener(v->hideSensitive());
 
 			sensitiveText=findViewById(R.id.sensitive_text);
@@ -143,7 +139,8 @@ public class MediaGridStatusDisplayItem extends StatusDisplayItem{
 
 		@Override
 		public void onBind(MediaGridStatusDisplayItem item){
-			wrapper.setPadding(0, 0, 0, item.inset ? 0 : V.dp(8));
+			thereAreFailedImages=false;
+			wrapper.setPaddingRelative(V.dp(item.fullWidth ? 16 : 64), 0, V.dp(16), V.dp(8));
 
 			layout.setTiledLayout(item.tiledLayout);
 			for(MediaAttachmentViewController c:controllers){
@@ -173,7 +170,7 @@ public class MediaGridStatusDisplayItem extends StatusDisplayItem{
 				}
 				controllers.add(c);
 
-				if (item.status.translation != null){
+				if (item.status.translation!=null && item.status.translation.mediaAttachments!=null){
 					if(item.status.translationState==Status.TranslationState.SHOWN){
 						if(!item.translatedAttachments.containsKey(att.id)){
 							Optional<Translation.MediaAttachment> translatedAttachment=Arrays.stream(item.status.translation.mediaAttachments).filter(mediaAttachment->mediaAttachment.id.equals(att.id)).findFirst();
@@ -212,17 +209,35 @@ public class MediaGridStatusDisplayItem extends StatusDisplayItem{
 
 		@Override
 		public void setImage(int index, Drawable drawable){
-			controllers.get(index).setImage(drawable);
+			if(index<controllers.size())
+				controllers.get(index).setImage(drawable);
 		}
 
 		@Override
 		public void clearImage(int index){
-			controllers.get(index).clearImage();
+			if(index<controllers.size())
+				controllers.get(index).clearImage();
+		}
+
+		@Override
+		public void onImageLoadingFailed(int index, Throwable error){
+			if(index<controllers.size()){
+				controllers.get(index).showFailedOverlay();
+				thereAreFailedImages=true;
+			}
 		}
 
 		private void onViewClick(View v){
 			int index=(Integer)v.getTag();
 			((PhotoViewerHost) item.parentFragment).openPhotoViewer(item.parentID, item.status, index, this);
+			if(thereAreFailedImages){
+				for(MediaAttachmentViewController controller:controllers){
+					if(controller.isFailedOverlayShown()){
+						controller.clearImage();
+					}
+				}
+				item.parentFragment.retryFailedImages();
+			}
 		}
 
 		private void onAltTextClick(View v){

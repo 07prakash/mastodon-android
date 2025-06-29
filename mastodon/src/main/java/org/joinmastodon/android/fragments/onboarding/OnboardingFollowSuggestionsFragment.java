@@ -70,7 +70,7 @@ public class OnboardingFollowSuggestionsFragment extends BaseAccountListFragment
 				.setCallback(new SimpleCallback<>(this){
 					@Override
 					public void onSuccess(List<FollowSuggestion> result){
-						onDataLoaded(result.stream().map(fs->new AccountViewModel(fs.account, accountID).stripLinksFromBio()).collect(Collectors.toList()), false);
+						onDataLoaded(result.stream().map(fs->new AccountViewModel(fs.account, accountID, getActivity()).stripLinksFromBio()).collect(Collectors.toList()), false);
 					}
 				})
 				.exec(accountID);
@@ -133,7 +133,7 @@ public class OnboardingFollowSuggestionsFragment extends BaseAccountListFragment
 		}
 		numRunningFollowRequests++;
 		String id=accountIdsToFollow.remove(0);
-		new SetAccountFollowed(id, true, true)
+		new SetAccountFollowed(id, true, true, false)
 				.setCallback(new Callback<>(){
 					@Override
 					public void onSuccess(Relationship result){

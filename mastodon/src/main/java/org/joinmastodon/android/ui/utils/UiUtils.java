@@ -1,8 +1,12 @@
 package org.joinmastodon.android.ui.utils;
 
 import android.annotation.SuppressLint;
+import android.annotation.TargetApi;
 import android.app.Activity;
+import android.app.UiModeManager;
 import android.content.ActivityNotFoundException;
+import android.content.ClipData;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.res.ColorStateList;
@@ -11,15 +15,19 @@ import android.content.res.TypedArray;
 import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
+import android.graphics.drawable.Animatable;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.InsetDrawable;
+import android.graphics.drawable.LayerDrawable;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.SystemClock;
+import android.os.VibrationEffect;
+import android.os.Vibrator;
 import android.os.ext.SdkExtensions;
 import android.provider.MediaStore;
 import android.provider.OpenableColumns;
@@ -32,6 +40,8 @@ import android.transition.ChangeScroll;
 import android.transition.Fade;
 import android.transition.TransitionManager;
 import android.transition.TransitionSet;
+import android.view.Gravity;
+import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -40,11 +50,12 @@ import android.view.WindowInsets;
 import android.webkit.MimeTypeMap;
 import android.widget.Button;
 import android.widget.PopupMenu;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
-import android.widget.Toolbar;
 
 import org.joinmastodon.android.E;
+import org.joinmastodon.android.FileProvider;
 import org.joinmastodon.android.GlobalUserPreferences;
 import org.joinmastodon.android.MainActivity;
 import org.joinmastodon.android.MastodonApp;
@@ -68,12 +79,18 @@ import org.joinmastodon.android.model.Hashtag;
 import org.joinmastodon.android.model.Relationship;
 import org.joinmastodon.android.model.SearchResults;
 import org.joinmastodon.android.model.Status;
+import org.joinmastodon.android.ui.ColorContrastMode;
 import org.joinmastodon.android.ui.M3AlertDialogBuilder;
+import org.joinmastodon.android.ui.Snackbar;
+import org.joinmastodon.android.ui.sheets.BlockAccountConfirmationSheet;
+import org.joinmastodon.android.ui.sheets.BlockDomainConfirmationSheet;
+import org.joinmastodon.android.ui.sheets.MuteAccountConfirmationSheet;
 import org.joinmastodon.android.ui.text.CustomEmojiSpan;
 import org.joinmastodon.android.ui.text.SpacerSpan;
 import org.parceler.Parcels;
 
 import java.io.File;
+import java.io.IOException;
 import java.lang.reflect.Method;
 import java.time.Instant;
 import java.time.LocalDate;
@@ -97,6 +114,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import me.grishka.appkit.Nav;
 import me.grishka.appkit.api.Callback;
 import me.grishka.appkit.api.ErrorResponse;
+import me.grishka.appkit.imageloader.ImageCache;
 import me.grishka.appkit.imageloader.ViewImageLoader;
 import me.grishka.appkit.imageloader.requests.UrlImageLoaderRequest;
 import me.grishka.appkit.utils.CubicBezierInterpolator;
@@ -112,18 +130,35 @@ public class UiUtils{
 	private UiUtils(){}
 
 	public static void launchWebBrowser(Context context, String url){
-		try{
-			if(GlobalUserPreferences.useCustomTabs){
-				new CustomTabsIntent.Builder()
-						.setShowTitle(true)
-						.build()
-						.launchUrl(context, Uri.parse(url));
-			}else{
-				context.startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(url)));
-			}
-		}catch(ActivityNotFoundException x){
-			Toast.makeText(context, R.string.no_app_to_handle_action, Toast.LENGTH_SHORT).show();
+		Intent intent;
+		if(GlobalUserPreferences.useCustomTabs){
+			intent=new CustomTabsIntent.Builder()
+					.setShowTitle(true)
+					.build()
+					.intent;
+		}else{
+			intent=new Intent(Intent.ACTION_VIEW);
 		}
+		intent.setData(Uri.parse(url));
+		intent.putExtra(Intent.EXTRA_REFERRER, Uri.parse("android-app://"+context.getPackageName()));
+		ComponentName handler=intent.resolveActivity(context.getPackageManager());
+		if(handler==null){
+			try{
+				context.startActivity(intent);
+			}catch(ActivityNotFoundException x){
+				Toast.makeText(context, R.string.no_app_to_handle_action, Toast.LENGTH_SHORT).show();
+			}
+			return;
+		}
+		if(handler.getPackageName().equals(context.getPackageName())){ // Oops. Let's prevent the app from opening itself.
+			ComponentName browserActivity=new Intent(Intent.ACTION_VIEW, Uri.parse("http://example.com")).resolveActivity(context.getPackageManager());
+			if(browserActivity==null){
+				Toast.makeText(context, R.string.no_app_to_handle_action, Toast.LENGTH_SHORT).show();
+				return;
+			}
+			intent.setComponent(browserActivity);
+		}
+		context.startActivity(intent);
 	}
 
 	public static String formatRelativeTimestamp(Context context, Instant instant){
@@ -330,7 +365,7 @@ public class UiUtils{
 				public View getView(){
 					return view;
 				}
-			}, null, new UrlImageLoaderRequest(emoji.getKey().url, emojiSize, emojiSize), null, false, true);
+			}, null, new UrlImageLoaderRequest(emoji.getKey().url, emojiSize, emojiSize), false, true);
 		}
 	}
 
@@ -342,13 +377,23 @@ public class UiUtils{
 	}
 
 	public static void openProfileByID(Context context, String selfID, String id){
+		openProfileByID(context, selfID, id, null, null);
+	}
+
+	public static void openProfileByID(Context context, String selfID, String id, String username, String domain){
 		Bundle args=new Bundle();
 		args.putString("account", selfID);
 		args.putString("profileAccountID", id);
+		if(username!=null && domain!=null){
+			args.putString("accountUsername", username);
+			args.putString("accountDomain", domain);
+		}
 		Nav.go((Activity)context, ProfileFragment.class, args);
 	}
 
 	public static void openHashtagTimeline(Context context, String accountID, Hashtag hashtag){
+		if(checkIfAlreadyDisplayingSameHashtag(context, hashtag.name))
+			return;
 		Bundle args=new Bundle();
 		args.putString("account", accountID);
 		args.putParcelable("hashtag", Parcels.wrap(hashtag));
@@ -356,10 +401,20 @@ public class UiUtils{
 	}
 
 	public static void openHashtagTimeline(Context context, String accountID, String hashtag){
+		if(checkIfAlreadyDisplayingSameHashtag(context, hashtag))
+			return;
 		Bundle args=new Bundle();
 		args.putString("account", accountID);
 		args.putString("hashtagName", hashtag);
 		Nav.go((Activity)context, HashtagTimelineFragment.class, args);
+	}
+
+	private static boolean checkIfAlreadyDisplayingSameHashtag(Context context, String hashtag){
+		if(context instanceof MainActivity ma && ma.getTopmostFragment() instanceof HashtagTimelineFragment htf && htf.getHashtagName().equalsIgnoreCase(hashtag)){
+			htf.shakeListView();
+			return true;
+		}
+		return false;
 	}
 
 	public static void showConfirmationAlert(Context context, @StringRes int title, @StringRes int message, @StringRes int confirmButton, Runnable onConfirmed){
@@ -376,72 +431,142 @@ public class UiUtils{
 	}
 
 	public static void confirmToggleBlockUser(Activity activity, String accountID, Account account, boolean currentlyBlocked, Consumer<Relationship> resultCallback){
-		showConfirmationAlert(activity, activity.getString(currentlyBlocked ? R.string.confirm_unblock_title : R.string.confirm_block_title),
-				activity.getString(currentlyBlocked ? R.string.confirm_unblock : R.string.confirm_block, account.displayName),
-				activity.getString(currentlyBlocked ? R.string.do_unblock : R.string.do_block), ()->{
-					new SetAccountBlocked(account.id, !currentlyBlocked)
-							.setCallback(new Callback<>(){
-								@Override
-								public void onSuccess(Relationship result){
-									resultCallback.accept(result);
-									if(!currentlyBlocked){
-										E.post(new RemoveAccountPostsEvent(accountID, account.id, false));
-									}
-								}
+		if(!currentlyBlocked){
+			new BlockAccountConfirmationSheet(activity, account, (onSuccess, onError)->{
+				new SetAccountBlocked(account.id, true)
+						.setCallback(new Callback<>(){
+							@Override
+							public void onSuccess(Relationship result){
+								resultCallback.accept(result);
+								onSuccess.run();
+								E.post(new RemoveAccountPostsEvent(accountID, account.id, false));
+							}
 
-								@Override
-								public void onError(ErrorResponse error){
-									error.showToast(activity);
-								}
-							})
-							.wrapProgress(activity, R.string.loading, false)
-							.exec(accountID);
-				});
+							@Override
+							public void onError(ErrorResponse error){
+								error.showToast(activity);
+								onError.run();
+							}
+						})
+						.exec(accountID);
+			}).show();
+		}else{
+			new SetAccountBlocked(account.id, false)
+					.setCallback(new Callback<>(){
+						@Override
+						public void onSuccess(Relationship result){
+							resultCallback.accept(result);
+							new Snackbar.Builder(activity)
+									.setText(activity.getString(R.string.unblocked_user_x, account.getDisplayUsername()))
+									.show();
+						}
+
+						@Override
+						public void onError(ErrorResponse error){
+							error.showToast(activity);
+						}
+					})
+					.wrapProgress(activity, R.string.loading, false)
+					.exec(accountID);
+		}
 	}
 
-	public static void confirmToggleBlockDomain(Activity activity, String accountID, String domain, boolean currentlyBlocked, Runnable resultCallback){
-		showConfirmationAlert(activity, activity.getString(currentlyBlocked ? R.string.confirm_unblock_domain_title : R.string.confirm_block_domain_title),
-				activity.getString(currentlyBlocked ? R.string.confirm_unblock : R.string.confirm_block, domain),
-				activity.getString(currentlyBlocked ? R.string.do_unblock : R.string.do_block), ()->{
-					new SetDomainBlocked(domain, !currentlyBlocked)
-							.setCallback(new Callback<>(){
-								@Override
-								public void onSuccess(Object result){
-									resultCallback.run();
-								}
+	public static void confirmToggleBlockDomain(Activity activity, String accountID, Account account, boolean currentlyBlocked, Runnable resultCallback, Consumer<Relationship> callbackInCaseUserWasBlockedInstead){
+		if(!currentlyBlocked){
+			new BlockDomainConfirmationSheet(activity, account, (onSuccess, onError)->{
+				new SetDomainBlocked(account.getDomain(), true)
+						.setCallback(new Callback<>(){
+							@Override
+							public void onSuccess(Object result){
+								resultCallback.run();
+								onSuccess.run();
+							}
 
-								@Override
-								public void onError(ErrorResponse error){
-									error.showToast(activity);
-								}
-							})
-							.wrapProgress(activity, R.string.loading, false)
-							.exec(accountID);
-				});
+							@Override
+							public void onError(ErrorResponse error){
+								error.showToast(activity);
+								onError.run();
+							}
+						})
+						.exec(accountID);
+			}, (onSuccess, onError)->{
+				new SetAccountBlocked(account.id, true)
+						.setCallback(new Callback<>(){
+							@Override
+							public void onSuccess(Relationship result){
+								callbackInCaseUserWasBlockedInstead.accept(result);
+								onSuccess.run();
+								E.post(new RemoveAccountPostsEvent(accountID, account.id, false));
+							}
+
+							@Override
+							public void onError(ErrorResponse error){
+								error.showToast(activity);
+								onError.run();
+							}
+						})
+						.exec(accountID);
+			}, accountID).show();
+		}else{
+			new SetDomainBlocked(account.getDomain(), false)
+					.setCallback(new Callback<>(){
+						@Override
+						public void onSuccess(Object result){
+							resultCallback.run();
+							new Snackbar.Builder(activity)
+									.setText(activity.getString(R.string.unblocked_domain_x, account.getDomain()))
+									.show();
+						}
+
+						@Override
+						public void onError(ErrorResponse error){
+							error.showToast(activity);
+						}
+					})
+					.wrapProgress(activity, R.string.loading, false)
+					.exec(accountID);
+		}
 	}
 
 	public static void confirmToggleMuteUser(Activity activity, String accountID, Account account, boolean currentlyMuted, Consumer<Relationship> resultCallback){
-		showConfirmationAlert(activity, activity.getString(currentlyMuted ? R.string.confirm_unmute_title : R.string.confirm_mute_title),
-				activity.getString(currentlyMuted ? R.string.confirm_unmute : R.string.confirm_mute, account.displayName),
-				activity.getString(currentlyMuted ? R.string.do_unmute : R.string.do_mute), ()->{
-					new SetAccountMuted(account.id, !currentlyMuted)
-							.setCallback(new Callback<>(){
-								@Override
-								public void onSuccess(Relationship result){
-									resultCallback.accept(result);
-									if(!currentlyMuted){
-										E.post(new RemoveAccountPostsEvent(accountID, account.id, false));
-									}
-								}
+		if(!currentlyMuted){
+			new MuteAccountConfirmationSheet(activity, account, (onSuccess, onError)->{
+				new SetAccountMuted(account.id, true)
+						.setCallback(new Callback<>(){
+							@Override
+							public void onSuccess(Relationship result){
+								resultCallback.accept(result);
+								onSuccess.run();
+								E.post(new RemoveAccountPostsEvent(accountID, account.id, false));
+							}
 
-								@Override
-								public void onError(ErrorResponse error){
-									error.showToast(activity);
-								}
-							})
-							.wrapProgress(activity, R.string.loading, false)
-							.exec(accountID);
-				});
+							@Override
+							public void onError(ErrorResponse error){
+								error.showToast(activity);
+								onError.run();
+							}
+						})
+						.exec(accountID);
+			}).show();
+		}else{
+			new SetAccountMuted(account.id, false)
+					.setCallback(new Callback<>(){
+						@Override
+						public void onSuccess(Relationship result){
+							resultCallback.accept(result);
+							new Snackbar.Builder(activity)
+									.setText(activity.getString(R.string.unmuted_user_x, account.getDisplayUsername()))
+									.show();
+						}
+
+						@Override
+						public void onError(ErrorResponse error){
+							error.showToast(activity);
+						}
+					})
+					.wrapProgress(activity, R.string.loading, false)
+					.exec(accountID);
+		}
 	}
 
 	public static void confirmDeletePost(Activity activity, String accountID, Status status, Consumer<Status> resultCallback){
@@ -503,7 +628,7 @@ public class UiUtils{
 		}else{
 			Runnable action=()->{
 				progressCallback.accept(true);
-				new SetAccountFollowed(account.id, !relationship.following && !relationship.requested, true)
+				new SetAccountFollowed(account.id, !relationship.following && !relationship.requested, true, false)
 						.setCallback(new Callback<>(){
 							@Override
 							public void onSuccess(Relationship result){
@@ -531,6 +656,9 @@ public class UiUtils{
 	}
 
 	public static <T> void updateList(List<T> oldList, List<T> newList, RecyclerView list, RecyclerView.Adapter<?> adapter, BiPredicate<T, T> areItemsSame){
+		RecyclerView.ItemAnimator animator=list.getItemAnimator();
+		if(animator!=null)
+			animator.endAnimations();
 		// Save topmost item position and offset because for some reason RecyclerView would scroll the list to weird places when you insert items at the top
 		int topItem, topItemOffset;
 		if(list.getChildCount()==0){
@@ -598,18 +726,54 @@ public class UiUtils{
 			item.setIcon(icon);
 			SpannableStringBuilder ssb=new SpannableStringBuilder(item.getTitle());
 			ssb.insert(0, " ");
-			ssb.setSpan(new SpacerSpan(V.dp(24), 1), 0, 1, 0);
-			ssb.append(" ", new SpacerSpan(V.dp(8), 1), 0);
+			ssb.setSpan(new SpacerSpan(V.dp(24), 0), 0, 1, 0);
+			ssb.append(" ", new SpacerSpan(V.dp(8), 0), 0);
 			item.setTitle(ssb);
 		}
 	}
 
 	public static void setUserPreferredTheme(Context context){
-		context.setTheme(switch(GlobalUserPreferences.theme){
-			case AUTO -> R.style.Theme_Mastodon_AutoLightDark;
-			case LIGHT -> R.style.Theme_Mastodon_Light;
-			case DARK -> R.style.Theme_Mastodon_Dark;
-		});
+		context.setTheme(getThemeForUserPreference(context, GlobalUserPreferences.theme));
+	}
+
+	public static int getThemeForUserPreference(Context context, GlobalUserPreferences.ThemePreference pref){
+		if(GlobalUserPreferences.useDynamicColors){
+			return switch(pref){
+				case AUTO -> switch(getColorContrastMode(context)){
+					case DEFAULT -> R.style.Theme_Mastodon_AutoLightDark;
+					case MEDIUM -> R.style.Theme_Mastodon_AutoLightDark_MediumContrast;
+					case HIGH -> R.style.Theme_Mastodon_AutoLightDark_HighContrast;
+				};
+				case LIGHT -> switch(getColorContrastMode(context)){
+					case DEFAULT -> R.style.Theme_Mastodon_Light;
+					case MEDIUM -> R.style.Theme_Mastodon_Light_MediumContrast;
+					case HIGH -> R.style.Theme_Mastodon_Light_HighContrast;
+				};
+				case DARK -> switch(getColorContrastMode(context)){
+					case DEFAULT -> R.style.Theme_Mastodon_Dark;
+					case MEDIUM -> R.style.Theme_Mastodon_Dark_MediumContrast;
+					case HIGH -> R.style.Theme_Mastodon_Dark_HighContrast;
+				};
+			};
+		}else{
+			return switch(pref){
+				case AUTO -> switch(getColorContrastMode(context)){
+					case DEFAULT -> R.style.Theme_Mastodon_AutoLightDark_Masterial;
+					case MEDIUM -> R.style.Theme_Mastodon_AutoLightDark_MediumContrast_Masterial;
+					case HIGH -> R.style.Theme_Mastodon_AutoLightDark_HighContrast_Masterial;
+				};
+				case LIGHT -> switch(getColorContrastMode(context)){
+					case DEFAULT -> R.style.Theme_Mastodon_Light_Masterial;
+					case MEDIUM -> R.style.Theme_Mastodon_Light_MediumContrast_Masterial;
+					case HIGH -> R.style.Theme_Mastodon_Light_HighContrast_Masterial;
+				};
+				case DARK -> switch(getColorContrastMode(context)){
+					case DEFAULT -> R.style.Theme_Mastodon_Dark_Masterial;
+					case MEDIUM -> R.style.Theme_Mastodon_Dark_MediumContrast_Masterial;
+					case HIGH -> R.style.Theme_Mastodon_Dark_HighContrast_Masterial;
+				};
+			};
+		}
 	}
 
 	public static boolean isDarkTheme(){
@@ -705,6 +869,10 @@ public class UiUtils{
 
 	public static boolean isEMUI() {
 		return !TextUtils.isEmpty(getSystemProperty("ro.build.version.emui"));
+	}
+
+	public static boolean isMagic() {
+		return !TextUtils.isEmpty(getSystemProperty("ro.build.version.magic"));
 	}
 
 	public static int alphaBlendColors(int color1, int color2, float alpha){
@@ -839,19 +1007,61 @@ public class UiUtils{
 		}
 	}
 
-	public static void openSystemShareSheet(Context context, String url){
+	public static Uri getFileProviderUri(Context context, File file){
+		return FileProvider.getUriForFile(context, context.getPackageName()+".fileprovider", file);
+	}
+
+	public static void openSystemShareSheet(Context context, Object obj){
 		Intent intent=new Intent(Intent.ACTION_SEND);
 		intent.setType("text/plain");
+		Account account;
+		String url;
+		String previewTitle;
+
+		if(obj instanceof Account acc){
+			account=acc;
+			url=acc.url;
+			previewTitle=context.getString(R.string.share_sheet_preview_profile, account.displayName);
+		}else if(obj instanceof Status st){
+			account=st.account;
+			url=st.url;
+			String postText=st.getStrippedText();
+			if(TextUtils.isEmpty(postText)){
+				previewTitle=context.getString(R.string.share_sheet_preview_profile, account.displayName);
+			}else{
+				if(postText.length()>100)
+					postText=postText.substring(0, 100)+"...";
+				previewTitle=context.getString(R.string.share_sheet_preview_post, account.displayName, postText);
+			}
+		}else{
+			throw new IllegalArgumentException("Unsupported share object type");
+		}
+
 		intent.putExtra(Intent.EXTRA_TEXT, url);
+		intent.putExtra(Intent.EXTRA_TITLE, previewTitle);
+		ImageCache cache=ImageCache.getInstance(context);
+		try{
+			File ava=cache.getFile(new UrlImageLoaderRequest(account.avatarStatic));
+			if(ava==null || !ava.exists())
+				ava=cache.getFile(new UrlImageLoaderRequest(account.avatar));
+			if(ava!=null && ava.exists()){
+				intent.setClipData(ClipData.newRawUri(null, getFileProviderUri(context, ava)));
+				intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+			}
+		}catch(IOException ignore){}
 		context.startActivity(Intent.createChooser(intent, context.getString(R.string.share_toot_title)));
 	}
 
 	public static void maybeShowTextCopiedToast(Context context){
 		//show toast, android from S_V2 on has built-in popup, as documented in
 		//https://developer.android.com/develop/ui/views/touch-and-input/copy-paste#duplicate-notifications
-		if(Build.VERSION.SDK_INT<=Build.VERSION_CODES.S_V2){
+		if(needShowClipboardToast()){
 			Toast.makeText(context, R.string.text_copied, Toast.LENGTH_SHORT).show();
 		}
+	}
+
+	public static boolean needShowClipboardToast(){
+		return Build.VERSION.SDK_INT<=Build.VERSION_CODES.S_V2;
 	}
 
 	public static void setAllPaddings(View view, int paddingDp){
@@ -881,5 +1091,64 @@ public class UiUtils{
 			msg.removeSpan(span);
 		}
 		return msg;
+	}
+
+	public static void showProgressForAlertButton(Button button, boolean show){
+		boolean shown=button.getTag(R.id.button_progress_orig_color)!=null;
+		if(shown==show)
+			return;
+		button.setEnabled(!show);
+		if(show){
+			ColorStateList origColor=button.getTextColors();
+			button.setTag(R.id.button_progress_orig_color, origColor);
+			button.setTextColor(0);
+			ProgressBar progressBar=(ProgressBar) LayoutInflater.from(button.getContext()).inflate(R.layout.progress_bar, null);
+			Drawable progress=progressBar.getIndeterminateDrawable().mutate();
+			progress.setTint(getThemeColor(button.getContext(), R.attr.colorM3OnSurface) & 0x60ffffff);
+			if(progress instanceof Animatable a)
+				a.start();
+			LayerDrawable layerList=new LayerDrawable(new Drawable[]{progress});
+			layerList.setLayerGravity(0, Gravity.CENTER);
+			layerList.setLayerSize(0, V.dp(24), V.dp(24));
+			layerList.setBounds(0, 0, button.getWidth(), button.getHeight());
+			button.getOverlay().add(layerList);
+		}else{
+			button.getOverlay().clear();
+			ColorStateList origColor=(ColorStateList) button.getTag(R.id.button_progress_orig_color);
+			button.setTag(R.id.button_progress_orig_color, null);
+			button.setTextColor(origColor);
+		}
+	}
+
+	public static void updateRecyclerViewKeepingAbsoluteScrollPosition(RecyclerView rv, Runnable onUpdate){
+		int topItem=-1;
+		int topItemOffset=0;
+		if(rv.getChildCount()>0){
+			View item=rv.getChildAt(0);
+			topItem=rv.getChildAdapterPosition(item);
+			topItemOffset=item.getTop();
+		}
+		onUpdate.run();
+		int newCount=rv.getAdapter().getItemCount();
+		if(newCount>=topItem){
+			rv.scrollToPosition(topItem);
+			rv.scrollBy(0, -topItemOffset);
+		}
+	}
+
+	public static ColorContrastMode getColorContrastMode(Context context){
+		if(Build.VERSION.SDK_INT<Build.VERSION_CODES.UPSIDE_DOWN_CAKE)
+			return ColorContrastMode.DEFAULT;
+		return ColorContrastMode.fromContrastValue(context.getSystemService(UiModeManager.class).getContrast());
+	}
+
+	@TargetApi(Build.VERSION_CODES.R)
+	public static boolean playVibrationEffectIfSupported(Context context, int effect){
+		Vibrator vibrator=context.getSystemService(Vibrator.class);
+		if(vibrator.areAllPrimitivesSupported(effect)){
+			vibrator.vibrate(VibrationEffect.startComposition().addPrimitive(effect).compose());
+			return true;
+		}
+		return false;
 	}
 }

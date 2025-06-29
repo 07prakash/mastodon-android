@@ -1,6 +1,9 @@
 package org.joinmastodon.android.api;
 
+import android.os.Handler;
+import android.os.Looper;
 import android.util.Log;
+import android.widget.Toast;
 
 import com.google.gson.FieldNamingPolicy;
 import com.google.gson.Gson;
@@ -12,14 +15,19 @@ import com.google.gson.JsonParser;
 import com.google.gson.JsonSyntaxException;
 
 import org.joinmastodon.android.BuildConfig;
+import org.joinmastodon.android.MastodonApp;
 import org.joinmastodon.android.api.gson.IsoInstantTypeAdapter;
 import org.joinmastodon.android.api.gson.IsoLocalDateTypeAdapter;
 import org.joinmastodon.android.api.session.AccountSession;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.Reader;
 import java.time.Instant;
 import java.time.LocalDate;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
+import java.time.format.FormatStyle;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -29,6 +37,8 @@ import java.util.concurrent.TimeUnit;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import me.grishka.appkit.utils.WorkerThread;
+import okhttp3.Cache;
+import okhttp3.CacheControl;
 import okhttp3.Call;
 import okhttp3.Callback;
 import okhttp3.OkHttpClient;
@@ -49,7 +59,11 @@ public class MastodonAPIController{
 			.connectTimeout(60, TimeUnit.SECONDS)
 			.writeTimeout(60, TimeUnit.SECONDS)
 			.readTimeout(60, TimeUnit.SECONDS)
+			.cache(new Cache(new File(MastodonApp.context.getCacheDir(), "http"), 10*1024*1024))
 			.build();
+	private static Handler uiThreadHandler=new Handler(Looper.getMainLooper());
+
+	private static final CacheControl NO_CACHE_WHATSOEVER=new CacheControl.Builder().noCache().noStore().build();
 
 	private AccountSession session;
 
@@ -79,6 +93,9 @@ public class MastodonAPIController{
 
 				if(token!=null)
 					builder.header("Authorization", "Bearer "+token);
+
+				if(!req.cacheable)
+					builder.cacheControl(NO_CACHE_WHATSOEVER);
 
 				if(req.headers!=null){
 					for(Map.Entry<String, String> header:req.headers.entrySet()){
@@ -113,12 +130,31 @@ public class MastodonAPIController{
 
 					@Override
 					public void onResponse(@NonNull Call call, @NonNull Response response) throws IOException{
-						if(req.canceled)
+						if(req.canceled){
+							response.close();
 							return;
+						}
 						if(BuildConfig.DEBUG)
 							Log.d(TAG, logTag(session)+hreq+" received response: "+response);
 						synchronized(req){
 							req.okhttpCall=null;
+						}
+						if(BuildConfig.DEBUG){
+							String deprecationHeader=response.header("Deprecation");
+							if(deprecationHeader!=null && deprecationHeader.startsWith("@")){
+								try{
+									Instant date=Instant.ofEpochSecond(Long.parseLong(deprecationHeader.substring(1)));
+									String msg=hreq.url().encodedPath();
+									if(date.isAfter(Instant.now()))
+										msg+=" will be deprecated on ";
+									else
+										msg+=" is deprecated as of ";
+									msg+=date.atZone(ZoneId.systemDefault()).format(DateTimeFormatter.ofLocalizedDate(FormatStyle.MEDIUM));
+									Log.w(TAG, logTag(session)+msg);
+									final String finalMsg=msg;
+									uiThreadHandler.post(()->Toast.makeText(MastodonApp.context, finalMsg, Toast.LENGTH_SHORT).show());
+								}catch(NumberFormatException ignored){}
+							}
 						}
 						try(ResponseBody body=response.body()){
 							Reader reader=body.charStream();

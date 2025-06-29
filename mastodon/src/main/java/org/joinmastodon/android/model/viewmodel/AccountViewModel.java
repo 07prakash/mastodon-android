@@ -1,10 +1,10 @@
 package org.joinmastodon.android.model.viewmodel;
 
+import android.content.Context;
 import android.text.Spannable;
 import android.text.SpannableStringBuilder;
 
 import org.joinmastodon.android.GlobalUserPreferences;
-import org.joinmastodon.android.api.session.AccountSessionManager;
 import org.joinmastodon.android.model.Account;
 import org.joinmastodon.android.model.AccountField;
 import org.joinmastodon.android.ui.text.HtmlParser;
@@ -24,17 +24,25 @@ public class AccountViewModel{
 	public final CharSequence parsedName, parsedBio;
 	public final String verifiedLink;
 
-	public AccountViewModel(Account account, String accountID){
+	public AccountViewModel(Account account, String accountID, Context context){
+		this(account, accountID, true, context);
+	}
+
+	public AccountViewModel(Account account, String accountID, boolean needBio, Context context){
 		this.account=account;
 		avaRequest=new UrlImageLoaderRequest(GlobalUserPreferences.playGifs ? account.avatar : account.avatarStatic, V.dp(50), V.dp(50));
 		emojiHelper=new CustomEmojiHelper();
-		if(AccountSessionManager.get(accountID).getLocalPreferences().customEmojiInNames)
+		if(GlobalUserPreferences.customEmojiInNames)
 			parsedName=HtmlParser.parseCustomEmoji(account.displayName, account.emojis);
 		else
 			parsedName=account.displayName;
-		parsedBio=HtmlParser.parse(account.note, account.emojis, Collections.emptyList(), Collections.emptyList(), accountID, account);
 		SpannableStringBuilder ssb=new SpannableStringBuilder(parsedName);
-		ssb.append(parsedBio);
+		if(needBio){
+			parsedBio=HtmlParser.parse(account.note, account.emojis, Collections.emptyList(), Collections.emptyList(), accountID, account, context);
+			ssb.append(parsedBio);
+		}else{
+			parsedBio=null;
+		}
 		emojiHelper.setText(ssb);
 		String verifiedLink=null;
 		for(AccountField fld:account.fields){

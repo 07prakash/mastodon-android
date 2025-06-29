@@ -32,9 +32,22 @@
 	<attr name="colorSensitiveOverlay" format="color"/>
 	<attr name="colorWhite" format="color"/>
 	<attr name="colorFavorite" format="color" />
+	<attr name="colorOnFavorite" format="color"/>
+	<attr name="colorFavoriteContainer" format="color" />
+	<attr name="colorOnFavoriteContainer" format="color"/>
 	<attr name="colorBoost" format="color" />
-	<attr name="colorFollow" format="color" />
-	<attr name="colorPoll" format="color" />
+	<attr name="colorOnBoost" format="color"/>
+	<attr name="colorBoostContainer" format="color" />
+	<attr name="colorOnBoostContainer" format="color"/>
+	<attr name="colorBookmark" format="color" />
+	<attr name="colorOnBookmark" format="color"/>
+	<attr name="colorBookmarkContainer" format="color" />
+	<attr name="colorOnBookmarkContainer" format="color"/>
+	<attr name="colorRichTextText" format="color"/>
+	<attr name="colorRichTextContainer" format="color"/>
+	<attr name="colorRichTextDecorations" format="color"/>
+
+	<attr name="composePollStyleInactiveAlpha" format="float"/>
 
 	<declare-styleable name="MaxWidthFrameLayout">
 		<attr name="android:maxWidth" format="dimension"/>
@@ -58,5 +71,18 @@
 	<declare-styleable name="FixedAspectRatioImageView">
 		<attr name="aspectRatio" format="float"/>
 		<attr name="useHeight" format="boolean"/>
+	</declare-styleable>
+
+	<declare-styleable name="ProgressBarButton">
+		<attr name="progressBar" format="reference"/>
+	</declare-styleable>
+
+	<declare-styleable name="RoundedImageView">
+		<attr name="cornerRadius" format="dimension"/>
+		<attr name="roundBottomCorners" format="boolean"/>
+	</declare-styleable>
+
+	<declare-styleable name="TopBarsScrollAwayLinearLayout">
+		<attr name="topBarsCount" format="integer"/>
 	</declare-styleable>
 </resources>

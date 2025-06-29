@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<resources>
+<resources xmlns:tools="http://schemas.android.com/tools" tools:ignore="MissingTranslation">
 	<string name="log_in">Acceder</string>
 	<string name="next">Seguinte</string>
 	<string name="loading_instance">Obtendo info do servidor…</string>
@@ -9,13 +9,12 @@
 	<string name="preparing_auth">Preparándose para a autenticación…</string>
 	<string name="finishing_auth">Rematando coa autenticación…</string>
 	<string name="user_boosted">%s promoveu</string>
-	<string name="in_reply_to">Como resposta a %s</string>
+	<string name="in_reply_to">como resposta a %s</string>
 	<string name="notifications">Notificacións</string>
 	<string name="user_followed_you">%s comezou a seguirte</string>
 	<string name="user_sent_follow_request">%s enviouche unha solicitude de seguimento</string>
-	<string name="user_favorited">%s marcou como favorita a túa publicación</string>
-	<string name="notification_boosted">%s promoveu a túa publicación</string>
-	<string name="poll_ended">Mira os resultados dunha enquisa na que votaches</string>
+	<string name="user_favorited">%s favoreceu:</string>
+	<string name="notification_boosted">%s promoveu:</string>
 	<string name="share_toot_title">Compartir</string>
 	<string name="settings">Axustes</string>
 	<string name="publish">Publicar</string>
@@ -37,7 +36,7 @@
 	<string name="button_follow">Seguir</string>
 	<string name="button_following">Seguindo</string>
 	<string name="edit_profile">Editar perfil</string>
-	<string name="share_user">Compartir perfil</string>
+	<string name="share_user">Compartir perfil en…</string>
 	<string name="mute_user">Acalar a %s</string>
 	<string name="unmute_user">Deixar de acalar a @%s</string>
 	<string name="block_user">Bloquear a %s</string>
@@ -90,22 +89,11 @@
 		<item quantity="other">%,d votos</item>
 	</plurals>
 	<string name="poll_closed">Pechada</string>
-	<string name="confirm_mute_title">Acalar conta</string>
-	<string name="confirm_mute">Confirma Acalar a %s</string>
 	<string name="do_mute">Acalar</string>
-	<string name="confirm_unmute_title">Retirar acalado da Conta</string>
-	<string name="confirm_unmute">Confirma restablecer a %s</string>
-	<string name="do_unmute">Non Acalar</string>
-	<string name="confirm_block_title">Bloquear Conta</string>
-	<string name="confirm_block_domain_title">Bloquear Dominio</string>
-	<string name="confirm_block">Confirma o bloqueo de %s</string>
 	<string name="do_block">Bloquear</string>
-	<string name="confirm_unblock_title">Desbloquear Conta</string>
-	<string name="confirm_unblock_domain_title">Desbloquear dominio</string>
-	<string name="confirm_unblock">Confirma o desbloqueo de %s</string>
-	<string name="do_unblock">Desbloquear</string>
 	<string name="button_blocked">Bloqueado</string>
 	<string name="action_vote">Votar</string>
+	<string name="confirm">Confirmar</string>
 	<string name="delete">Eliminar</string>
 	<string name="confirm_delete_title">Eliminar publicación</string>
 	<string name="confirm_delete">Tes a certeza de querer eliminar esta publicación?</string>
@@ -162,7 +150,6 @@
 	<string name="email">Email</string>
 	<string name="password">Contrasinal</string>
 	<string name="confirm_password">Confirmar contrasinal</string>
-	<string name="password_note">Inclúe letras maiúsculas, caracteres especiais e números para aumentar a calidade do contrasinal.</string>
 	<string name="category_general">Xeral</string>
 	<string name="confirm_email_title">Mira na caixa de correo</string>
 	<!-- %s is the email address -->
@@ -176,10 +163,9 @@
 	<string name="save">Gardar</string>
 	<string name="add_alt_text">Engadir texto descritivo</string>
 	<string name="visibility_public">Público</string>
-	<string name="visibility_followers_only">Só para seguidoras</string>
-	<string name="visibility_private">Só para as mencionadas</string>
+	<string name="visibility_followers_only">Seguidoras</string>
+	<string name="visibility_private">Persoas mencionadas</string>
 	<string name="recent_searches">Recentes</string>
-	<string name="skip">Omitir</string>
 	<string name="notification_type_follow">Novas seguidoras</string>
 	<string name="notification_type_favorite">Favoritas</string>
 	<string name="notification_type_reblog">Promocións</string>
@@ -199,7 +185,7 @@
 	<string name="theme_dark">Escuro</string>
 	<string name="settings_behavior">Comportamento</string>
 	<string name="settings_gif">Reproducir avatares e emoji animados</string>
-	<string name="settings_custom_tabs">Usar navegador incluído na app</string>
+	<string name="settings_custom_tabs">Abrir ligazóns en</string>
 	<string name="settings_notifications">Notificacións</string>
 	<string name="settings_contribute">Colaborar con Mastodon</string>
 	<string name="settings_tos">Termos do servizo</string>
@@ -228,8 +214,8 @@
 	<string name="followed_user">Estás a seguir a %s</string>
 	<string name="following_user_requested">Solicitaches seguir a %s</string>
 	<string name="open_in_browser">Abrir nun navegador</string>
-	<string name="hide_boosts_from_user">Agochar promocións de @%s</string>
-	<string name="show_boosts_from_user">Mostrar promocións de %s</string>
+	<string name="hide_boosts_from_user">Agochar promocións</string>
+	<string name="show_boosts_from_user">Mostrar promocións</string>
 	<string name="signup_reason">Por qué queres unirte?</string>
 	<string name="signup_reason_note">Esto axudaranos a revisar a tua solicitude.</string>
 	<string name="clear">Limpar</string>
@@ -241,17 +227,15 @@
 	<string name="storage_permission_to_download">A app precisa acceder á almacenaxe para poder gardar o ficheiro.</string>
 	<string name="open_settings">Abrir axustes</string>
 	<string name="error_saving_file">Produciuse un erro ao gardar o ficheiro</string>
-	<string name="file_saved">Ficheiro gardado</string>
 	<string name="downloading">Descargando…</string>
 	<string name="no_app_to_handle_action">Non hai apps para esta acción</string>
-	<string name="local_timeline">Local</string>
+	<string name="local_timeline">O que acontece</string>
 	<string name="trending_posts_info_banner">Estas son as publicacións en voga en Mastodon.</string>
 	<string name="trending_links_info_banner">Estas son as novas historias das que se está a falar en Mastodon.</string>
 	<!-- %s is the server domain -->
 	<string name="local_timeline_info_banner">Estas son as publicacións das usuarias do teu servidor (%s).</string>
 	<string name="recommended_accounts_info_banner">Poderían interesarche estas contas en función doutras que segues.</string>
 	<string name="see_new_posts">Novas publicacións</string>
-	<string name="load_missing_posts">Cargar publicacións que faltan</string>
 	<string name="follow_back">Seguir tamén</string>
 	<string name="button_follow_pending">Pendente</string>
 	<string name="follows_you">Séguete</string>
@@ -308,8 +292,6 @@
 	<string name="file_size_mb">%.2f MB</string>
 	<string name="file_size_gb">%.2f GB</string>
 	<string name="upload_processing">Procesando…</string>
-	<!-- %s is version like 1.2.3 -->
-	<!-- %s is version like 1.2.3 -->
 	<!-- %s is file size -->
 	<string name="download_update">Descargar (%s)</string>
 	<string name="install_update">Instalar</string>
@@ -322,15 +304,8 @@
 	<string name="add_bookmark">Marcar</string>
 	<string name="remove_bookmark">Eliminar marcador</string>
 	<string name="bookmarks">Marcadores</string>
-	<string name="your_favorites">Publicacións Favoritas</string>
-	<string name="login_title">Benvida outra vez</string>
 	<string name="login_subtitle">Accede co servidor onde creaches a conta.</string>
 	<string name="server_url">URL do servidor</string>
-	<string name="signup_random_server_explain">Elixiremos un servidor no teu idioma se segues sen seleccionar nada.</string>
-	<string name="server_filter_any_language">Calquer idioma</string>
-	<string name="server_filter_instant_signup">Rexistro Instantáneo</string>
-	<string name="server_filter_manual_review">Revisión manual</string>
-	<string name="server_filter_any_signup_speed">Rapidez no rexistro</string>
 	<string name="server_filter_region_europe">Europa</string>
 	<string name="server_filter_region_north_america">América do Norte</string>
 	<string name="server_filter_region_south_america">América do Sur</string>
@@ -338,13 +313,10 @@
 	<string name="server_filter_region_asia">Asia</string>
 	<string name="server_filter_region_oceania">Oceanía</string>
 	<string name="not_accepting_new_members">Non se aceptan novas usuarias</string>
-	<string name="category_special_interests">Intereses Especiais</string>
 	<string name="signup_passwords_dont_match">Os contrasinais non coinciden</string>
-	<string name="pick_server_for_me">Elixe por min</string>
 	<string name="profile_add_row">Engadir fila</string>
 	<string name="profile_setup">Configuración do perfil</string>
 	<string name="profile_setup_subtitle">Sempre podes completar isto máis tarde na lapela de Perfil.</string>
-	<string name="popular_on_mastodon">Popular en Mastodon</string>
 	<string name="follow_all">Seguir a todas</string>
 	<string name="server_rules_disagree">Non aceptar</string>
 	<string name="privacy_policy_explanation">Resumo: non recollemos nin procesamos nada.</string>
@@ -609,7 +581,6 @@
 	<string name="remove">Eliminar</string>
 	<string name="add_list_member">Engadir usuaria</string>
 	<string name="search_among_people_you_follow">Procurar entre as persoas que segues</string>
-	<string name="add_user_to_list">Engadir á lista…</string>
 	<string name="add_user_to_list_title">Engadir á lista</string>
 	<!-- %s is a username -->
 	<string name="manage_user_lists">Xestionar as listas nas que aparece %s</string>
@@ -630,5 +601,54 @@
 	<string name="manage_list_members">Xestionar membros da lista</string>
 	<string name="list_no_members">Aínda non tes ninguén</string>
 	<string name="list_find_users">Buscar persoas que engadir</string>
+	<string name="reply_to_user">Responder a %s</string>
+	<string name="posted_at">Publicado o %s</string>
+	<string name="non_mutual_sheet_title">Ola, novo contacto!</string>
+	<string name="non_mutual_sheet_text">Semella que lle vas responder a alguén que aínda non tedes un seguimento recíproco. Intenta crear boa impresión.</string>
+	<string name="got_it">Entendo</string>
+	<string name="dont_remind_again">Non lembrarme isto</string>
 	<!-- %s is a time interval ("5 months") -->
+	<string name="old_post_sheet_title">Esta públicación ten %s</string>
+	<string name="old_post_sheet_text">Podes responder igualmente, pero podería xa non ser relevante.</string>
+	<plurals name="x_months">
+		<item quantity="one">%,d mes</item>
+		<item quantity="other">%,d meses</item>
+	</plurals>
+	<string name="more_than_two_years">máis de 2 anos</string>
+	<string name="non_mutual_title1">Que sexa respetuosa e relevante</string>
+	<string name="non_mutual_text1">Pon tino en que a resposta sexa cortés e atenda ao tema.</string>
+	<string name="non_mutual_title2">Facer propia a amabilidade</string>
+	<string name="non_mutual_text2">Un tono positivo sempre se agradece.</string>
+	<string name="non_mutual_title3">Abraza a diferencia</string>
+	<string name="non_mutual_text3">Cada persoa temos un xeito de conversar. Hai que ser flexibles.</string>
+	<string name="make_profile_discoverable">Que o meu perfil se poida atopar</string>
+	<string name="discoverability">Visibilidade</string>
+	<string name="discoverability_help">Cando marcas as opcións de visibilidade en Mastodon as túas publicacións aparecen nos resultados das buscas e nas tendencias.\n\nO teu perfil podería ser suxerido a persoas con intereses parecidos aos teus.\n\nRexeitalas non agocha o teu perfil se alguén o busca polo teu nome.</string>
+	<string name="app_version_copied">Copiouse o número de versión ao portapeis</string>
+	<string name="onboarding_recommendations_intro">Ti constrúes a túa propia cronoloxía.
+Canta máis xente sigas, máis activo e interesante será.</string>
+	<string name="onboarding_recommendations_title">Personaliza a túa cronoloxía de inicio</string>
+	<string name="article_by_author">Por %s</string>
+	<string name="button_reblogged">Promovida</string>
+	<string name="button_favorited">Favorecida</string>
+	<string name="join_server_x_with_invite">Únete a %s cun convite</string>
+	<string name="expired_invite_link">Ligazón de convite caducada</string>
+	<string name="expired_clipboard_invite_link_alert">A ligazón de convite para %1$s no portapapeis está caducada e non serve.\n\nPodes pedir unha nova ligazón a unha usuaria existente, crear a conta en %2$s, ou elexir outro servidor para crear a conta.</string>
+	<string name="invalid_invite_link">Ligazón de convite non válida</string>
+	<string name="invalid_clipboard_invite_link_alert">A ligazón de convite para %1$s no portapapeis non é válida e non serve para crear a conta.\n\nPodes pedir unha nova ligazón a unha usuaria existente, crear a conta en %2$s, ou elexir outro servidor no que crear a conta.</string>
+	<string name="use_invite_link">Usar ligazón de convite</string>
+	<string name="enter_invite_link">Escribir ligazón de convite</string>
+	<string name="this_invite_is_invalid">Esta ligazón de convite non é válida.</string>
+	<string name="this_invite_has_expired">A ligazón de convite caducou.</string>
+	<string name="invite_link_pasted">Pegouse a ligazón desde o portapapeis.</string>
+	<string name="need_invite_to_join_server">Precisas unha ligazón de convite dunha usuaria actual para unirte a %s.</string>
+	<!-- Shown on a button that saves a file, after it was successfully saved -->
+	<!-- %s is the username -->
+	<!-- %1$s is your server domain, %2$s is the domain that was blocked, %3$,d is the follower count, %4$s is the `x_accounts` plural string -->
+	<!-- %1$s is the domain that was blocked, %2$,d is the follower count, %3$s is the `x_accounts` plural string -->
+	<!-- appears when you're about to block a server -->
+	<!-- The complete string will look like "You will lose X followers and Y people you follow". See will_lose_x_followers and will_lose_x_following -->
+	<!-- The complete string will look like "You will lose X people you follow". See will_lose_x_following -->
+	<!-- %s is `at_least_x_years_old`. Some languages, unlike English, may require the word "years" here. -->
+	<!-- Substituted into `date_of_birth_explanation` -->
 </resources>

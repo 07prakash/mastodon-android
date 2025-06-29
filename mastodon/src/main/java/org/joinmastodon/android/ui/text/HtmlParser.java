@@ -1,11 +1,15 @@
 package org.joinmastodon.android.ui.text;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
+import android.graphics.Typeface;
 import android.text.SpannableStringBuilder;
 import android.text.Spanned;
 import android.text.TextUtils;
 import android.text.style.BackgroundColorSpan;
 import android.text.style.ForegroundColorSpan;
+import android.text.style.StrikethroughSpan;
+import android.text.style.StyleSpan;
 import android.widget.TextView;
 
 import com.twitter.twittertext.Regex;
@@ -34,6 +38,7 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import androidx.annotation.NonNull;
+import me.grishka.appkit.utils.V;
 
 public class HtmlParser{
 	private static final String TAG="HtmlParser";
@@ -52,6 +57,7 @@ public class HtmlParser{
 						")" +
 					")";
 	public static final Pattern URL_PATTERN=Pattern.compile(VALID_URL_PATTERN_STRING, Pattern.CASE_INSENSITIVE);
+	private static final Pattern INVITE_LINK_PATH=Pattern.compile("/invite/[a-z\\d]+$", Pattern.CASE_INSENSITIVE);
 	private static Pattern EMOJI_CODE_PATTERN=Pattern.compile(":([\\w]+):");
 
 	private HtmlParser(){}
@@ -68,7 +74,7 @@ public class HtmlParser{
 	 * @param emojis Custom emojis that are present in source as <code>:code:</code>
 	 * @return a spanned string
 	 */
-	public static SpannableStringBuilder parse(String source, List<Emoji> emojis, List<Mention> mentions, List<Hashtag> tags, String accountID, Object parentObject){
+	public static SpannableStringBuilder parse(String source, List<Emoji> emojis, List<Mention> mentions, List<Hashtag> tags, String accountID, Object parentObject, Context context){
 		class SpanInfo{
 			public Object span;
 			public int start;
@@ -84,17 +90,56 @@ public class HtmlParser{
 		Map<String, String> idsByUrl=mentions.stream().distinct().collect(Collectors.toMap(m->m.url, m->m.id));
 		// Hashtags in remote posts have remote URLs, these have local URLs so they don't match.
 //		Map<String, String> tagsByUrl=tags.stream().collect(Collectors.toMap(t->t.url, t->t.name));
-		Map<String, Hashtag> tagsByTag=tags.stream().distinct().collect(Collectors.toMap(t->t.name.toLowerCase(), Function.identity()));
+		Map<String, Hashtag> tagsByTag=tags.stream().distinct().collect(Collectors.toMap(t->t.name.toLowerCase(), Function.identity(), (a, b)->a));
+		Map<String, Mention> mentionsByID=mentions.stream().distinct().collect(Collectors.toMap(m->m.id, Function.identity(), (a, b)->a));
 
+		source=source.replaceAll("[\u2028\u2029]", "<br>");
 		final SpannableStringBuilder ssb=new SpannableStringBuilder();
 		Jsoup.parseBodyFragment(source).body().traverse(new NodeVisitor(){
 			private final ArrayList<SpanInfo> openSpans=new ArrayList<>();
+			private boolean lastElementWasBlock=false;
 
+			private boolean isInsidePre(){
+				for(SpanInfo si:openSpans){
+					if(si.span instanceof CodeBlockSpan)
+						return true;
+				}
+				return false;
+			}
+
+			private boolean isInsideBlockquote(){
+				for(SpanInfo si:openSpans){
+					if(si.span instanceof BlockQuoteSpan)
+						return true;
+				}
+				return false;
+			}
+
+			@SuppressLint("DefaultLocale")
 			@Override
 			public void head(@NonNull Node node, int depth){
 				if(node instanceof TextNode textNode){
-					ssb.append(textNode.text());
+					if(lastElementWasBlock){
+						lastElementWasBlock=false;
+						if(!textNode.text().trim().isEmpty()){
+							ssb.append('\n');
+							ssb.append("\n", new SpacerSpan(1, V.dp(8)), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+						}
+					}
+					if(isInsidePre()){
+						ssb.append(textNode.getWholeText().stripTrailing());
+					}else{
+						String text=textNode.text();
+						if(ssb.length()==0 || ssb.charAt(ssb.length()-1)=='\n')
+							text=text.stripLeading();
+						ssb.append(text);
+					}
 				}else if(node instanceof Element el){
+					if(lastElementWasBlock || (el.isBlock() && !"li".equals(el.nodeName()) && !"ul".equals(el.nodeName()) && !"ol".equals(el.nodeName()) && ssb.length()>0 && ssb.charAt(ssb.length()-1)!='\n')){
+						lastElementWasBlock=false;
+						ssb.append('\n');
+						ssb.append("\n", new SpacerSpan(1, V.dp(8)), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+					}
 					switch(el.nodeName()){
 						case "a" -> {
 							Object linkObject=null;
@@ -114,6 +159,7 @@ public class HtmlParser{
 								if(id!=null){
 									linkType=LinkSpan.Type.MENTION;
 									href=id;
+									linkObject=mentionsByID.get(id);
 								}else{
 									linkType=LinkSpan.Type.URL;
 								}
@@ -128,6 +174,44 @@ public class HtmlParser{
 								openSpans.add(new SpanInfo(new InvisibleSpan(), ssb.length(), el));
 							}
 						}
+						case "b", "strong" -> openSpans.add(new SpanInfo(new StyleSpan(Typeface.BOLD), ssb.length(), el));
+						case "i", "em" -> openSpans.add(new SpanInfo(new StyleSpan(Typeface.ITALIC), ssb.length(), el));
+						case "s", "del" -> openSpans.add(new SpanInfo(new StrikethroughSpan(), ssb.length(), el));
+						case "code" -> {
+							if(!isInsidePre()){
+								openSpans.add(new SpanInfo(new MonospaceSpan(context), ssb.length(), el));
+								ssb.append(" ", new SpacerSpan(V.dp(4), 0), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+							}
+						}
+						case "pre" -> openSpans.add(new SpanInfo(new CodeBlockSpan(context), ssb.length(), el));
+						case "li" -> {
+							Element parent=el.parent();
+							if(parent==null)
+								return;
+
+							if(ssb.length()>0 && ssb.charAt(ssb.length()-1)!='\n')
+								ssb.append('\n');
+							String markerText;
+							if("ol".equals(parent.nodeName())){
+								markerText=String.format("%d.", (parent.hasAttr("start") ? safeParseInt(parent.attr("start")) : 1)+el.elementSiblingIndex());
+							}else{
+								markerText="•";
+							}
+							openSpans.add(new SpanInfo(new ListItemMarkerSpan(markerText), ssb.length(), el));
+							StringBuilder copyableText=new StringBuilder();
+							for(SpanInfo si:openSpans){
+								if(si.span instanceof ListItemMarkerSpan ims){
+									copyableText.append(ims.text);
+								}
+							}
+							copyableText.append(' ');
+							ssb.append(copyableText.toString(), new InvisibleSpan(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+						}
+						case "blockquote" -> {
+							if(ssb.length()>0 && ssb.charAt(ssb.length()-1)!='\n')
+								ssb.append('\n');
+							openSpans.add(new SpanInfo(new BlockQuoteSpan(context, !isInsideBlockquote()), ssb.length(), el));
+						}
 					}
 				}
 			}
@@ -135,24 +219,43 @@ public class HtmlParser{
 			@Override
 			public void tail(@NonNull Node node, int depth){
 				if(node instanceof Element el){
-					if("span".equals(el.nodeName()) && el.hasClass("ellipsis")){
+					String name=el.nodeName();
+					lastElementWasBlock|=el.isBlock();
+					if("span".equals(name) && el.hasClass("ellipsis")){
 						ssb.append("…", new DeleteWhenCopiedSpan(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
-					}else if("p".equals(el.nodeName())){
-						if(node.nextSibling()!=null)
-							ssb.append("\n\n");
-					}else if(!openSpans.isEmpty()){
+					}
+					if(!openSpans.isEmpty()){
 						SpanInfo si=openSpans.get(openSpans.size()-1);
 						if(si.element==el){
-							ssb.setSpan(si.span, si.start, ssb.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+							if(si.span!=null){
+								if(si.span instanceof MonospaceSpan){
+									ssb.append(" ", new SpacerSpan(V.dp(4), 0), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+								}
+								ssb.setSpan(si.span, si.start, ssb.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+							}
 							openSpans.remove(openSpans.size()-1);
 						}
 					}
 				}
 			}
 		});
+		int trailingTrimLength=0;
+		for(int i=ssb.length()-1;i>=0 && Character.isWhitespace(ssb.charAt(i));i--){
+			trailingTrimLength++;
+		}
+		if(trailingTrimLength>0)
+			ssb.replace(ssb.length()-trailingTrimLength, ssb.length(), "");
 		if(!emojis.isEmpty())
 			parseCustomEmoji(ssb, emojis);
 		return ssb;
+	}
+
+	private static int safeParseInt(String s){
+		try{
+			return Integer.parseInt(s);
+		}catch(NumberFormatException x){
+			return 0;
+		}
 	}
 
 	public static void parseCustomEmoji(SpannableStringBuilder ssb, List<Emoji> emojis){
@@ -245,8 +348,8 @@ public class HtmlParser{
 		int fgColor=UiUtils.getThemeColor(context, R.attr.colorM3Error);
 		int bgColor=UiUtils.getThemeColor(context, R.attr.colorM3ErrorContainer);
 		for(FilterResult filter:filters){
-			if(!filter.filter.isActive())
-				continue;;
+			if(!filter.filter.isActive() || filter.keywordMatches==null)
+				continue;
 			for(String word:filter.keywordMatches){
 				Matcher matcher=Pattern.compile("\\b"+Pattern.quote(word)+"\\b", Pattern.CASE_INSENSITIVE).matcher(text);
 				while(matcher.find()){
@@ -257,5 +360,15 @@ public class HtmlParser{
 				}
 			}
 		}
+	}
+
+	public static boolean isValidInviteUrl(String url){
+		return url.startsWith("https://") && INVITE_LINK_PATH.matcher(url).find();
+	}
+
+	public static String normalizeDomain(String domain){
+		if(domain.startsWith("www."))
+			domain=domain.substring(4);
+		return domain;
 	}
 }

@@ -313,7 +313,12 @@ public class ComposeMediaViewController{
 		int maxSize=0;
 		String contentType=fragment.getActivity().getContentResolver().getType(attachment.uri);
 		if(contentType!=null && contentType.startsWith("image/")){
-			maxSize=2_073_600; // TODO get this from instance configuration when it gets added there
+			Instance instance=fragment.instance;
+			if(instance.configuration!=null && instance.configuration.mediaAttachments!=null && instance.configuration.mediaAttachments.imageMatrixLimit>0){
+				maxSize=instance.configuration.mediaAttachments.imageMatrixLimit;
+			}else{
+				maxSize=2_073_600;
+			}
 		}
 		attachment.progressBar.setProgress(0);
 		attachment.speedTracker.reset();
@@ -545,7 +550,7 @@ public class ComposeMediaViewController{
 	}
 	
 	public List<String> getAttachmentIDs(){
-		return attachments.stream().map(a->a.serverAttachment.id).collect(Collectors.toList());
+		return attachments.stream().filter(a->a.serverAttachment!=null).map(a->a.serverAttachment.id).collect(Collectors.toList());
 	}
 
 	public List<CreateStatus.Request.MediaAttribute> getAttachmentAttributes(){
@@ -684,7 +689,7 @@ public class ComposeMediaViewController{
 		public void setDescriptionToTitle(){
 			if(TextUtils.isEmpty(description)){
 				titleView.setText(R.string.add_alt_text);
-				titleView.setTextColor(UiUtils.getThemeColor(titleView.getContext(), R.attr.colorM3OnSurfaceVariant));
+				titleView.setTextColor(UiUtils.getThemeColor(titleView.getContext(), R.attr.colorM3Error));
 			}else{
 				titleView.setText(description);
 				titleView.setTextColor(UiUtils.getThemeColor(titleView.getContext(), R.attr.colorM3OnSurface));

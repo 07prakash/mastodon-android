@@ -10,7 +10,7 @@ import androidx.annotation.StringRes;
 public class PushNotification extends BaseModel{
 	public String accessToken;
 	public String preferredLocale;
-	public long notificationId;
+	public String notificationId;
 	@RequiredField
 	public Type notificationType;
 	@RequiredField
@@ -43,7 +43,9 @@ public class PushNotification extends BaseModel{
 		@SerializedName("follow")
 		FOLLOW(R.string.notification_type_follow),
 		@SerializedName("poll")
-		POLL(R.string.notification_type_poll);
+		POLL(R.string.notification_type_poll),
+		@SerializedName("status")
+		STATUS(R.string.notification_type_status);
 
 		@StringRes
 		public final int localizedName;

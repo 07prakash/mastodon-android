@@ -1,6 +1,6 @@
 package org.joinmastodon.android.model;
 
-import com.google.gson.annotations.SerializedName;
+import android.util.Log;
 
 import org.joinmastodon.android.api.ObjectValidationException;
 import org.joinmastodon.android.api.RequiredField;
@@ -13,13 +13,13 @@ public class Notification extends BaseModel implements DisplayItemsParent{
 	@RequiredField
 	public String id;
 //	@RequiredField
-	public Type type;
+	public NotificationType type;
 	@RequiredField
 	public Instant createdAt;
-	@RequiredField
 	public Account account;
-
 	public Status status;
+	public RelationshipSeveranceEvent event;
+	public AccountWarning moderationWarning;
 
 	@Override
 	public void postprocess() throws ObjectValidationException{
@@ -27,6 +27,19 @@ public class Notification extends BaseModel implements DisplayItemsParent{
 		account.postprocess();
 		if(status!=null)
 			status.postprocess();
+		if(event!=null){
+			try{
+				event.postprocess();
+			}catch(ObjectValidationException x){
+				Log.w("Notification", x);
+				event=null;
+			}
+		}
+		if(moderationWarning!=null)
+			moderationWarning.postprocess();
+		if(type!=NotificationType.SEVERED_RELATIONSHIPS && type!=NotificationType.MODERATION_WARNING && account==null){
+			throw new ObjectValidationException("account must be present for type "+type);
+		}
 	}
 
 	@Override
@@ -37,22 +50,5 @@ public class Notification extends BaseModel implements DisplayItemsParent{
 	@Override
 	public String getAccountID(){
 		return status!=null ? account.id : null;
-	}
-
-	public enum Type{
-		@SerializedName("follow")
-		FOLLOW,
-		@SerializedName("follow_request")
-		FOLLOW_REQUEST,
-		@SerializedName("mention")
-		MENTION,
-		@SerializedName("reblog")
-		REBLOG,
-		@SerializedName("favourite")
-		FAVORITE,
-		@SerializedName("poll")
-		POLL,
-		@SerializedName("status")
-		STATUS
 	}
 }

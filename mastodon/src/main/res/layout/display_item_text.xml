@@ -13,9 +13,9 @@
 		android:textColor="?colorM3OnSurface"
 		android:paddingLeft="16dp"
 		android:paddingRight="16dp"
-		android:paddingTop="16dp"
+		android:paddingTop="6dp"
 		android:paddingBottom="8dp"
-		android:textAppearance="@style/m3_body_large"/>
+		android:lineSpacingExtra="5.25dp"/>
 
 	<ViewStub
 		android:id="@+id/translation_info"

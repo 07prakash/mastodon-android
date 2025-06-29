@@ -3,7 +3,7 @@ package org.joinmastodon.android.ui.displayitems;
 import android.app.Activity;
 import android.graphics.drawable.Animatable;
 import android.graphics.drawable.Drawable;
-import android.text.SpannableStringBuilder;
+import android.util.TypedValue;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewStub;
@@ -32,7 +32,6 @@ public class TextStatusDisplayItem extends StatusDisplayItem{
 	private CharSequence translatedText;
 	private CustomEmojiHelper translationEmojiHelper=new CustomEmojiHelper();
 	public boolean textSelectable;
-	public boolean reduceTopPadding;
 	public final Status status;
 
 	public TextStatusDisplayItem(String parentID, CharSequence text, BaseStatusListFragment parentFragment, Status status){
@@ -59,7 +58,7 @@ public class TextStatusDisplayItem extends StatusDisplayItem{
 
 	public void setTranslatedText(String text){
 		Status statusForContent=status.getContentStatus();
-		translatedText=HtmlParser.parse(text, statusForContent.emojis, statusForContent.mentions, statusForContent.tags, parentFragment.getAccountID(), statusForContent);
+		translatedText=HtmlParser.parse(text, statusForContent.emojis, statusForContent.mentions, statusForContent.tags, parentFragment.getAccountID(), statusForContent, parentFragment.getActivity());
 		translationEmojiHelper.setText(translatedText);
 	}
 
@@ -94,8 +93,9 @@ public class TextStatusDisplayItem extends StatusDisplayItem{
 			text.setTextIsSelectable(item.textSelectable);
 			text.setInvalidateOnEveryFrame(false);
 			itemView.setClickable(false);
-			text.setPadding(text.getPaddingLeft(), item.reduceTopPadding ? V.dp(8) : V.dp(16), text.getPaddingRight(), text.getPaddingBottom());
-			text.setTextColor(UiUtils.getThemeColor(text.getContext(), item.inset ? R.attr.colorM3OnSurfaceVariant : R.attr.colorM3OnSurface));
+			itemView.setPaddingRelative(V.dp(item.fullWidth ? 0 : 48), 0, 0, 0);
+			text.setTextColor(UiUtils.getThemeColor(text.getContext(), R.attr.colorM3OnSurface));
+			text.setTextSize(TypedValue.COMPLEX_UNIT_SP, item.fullWidth ? 18 : 16);
 			updateTranslation(false);
 		}
 

@@ -1,14 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
-<resources>
+<resources xmlns:tools="http://schemas.android.com/tools" tools:ignore="MissingTranslation">
 	<string name="log_in">Inicia sessió</string>
 	<string name="next">Següent</string>
 	<string name="loading_instance">S\'està recuperant la informació del servidor…</string>
 	<string name="error">Error</string>
+	<string name="not_a_mastodon_instance">Sembla que %s no és un servidor de Mastodon.</string>
 	<string name="ok">D\'acord</string>
 	<string name="preparing_auth">Preparant l\'autenticació…</string>
 	<string name="finishing_auth">Finalitzant l\'autenticació…</string>
-	<string name="in_reply_to">En resposta a %s</string>
 	<string name="notifications">Notificacions</string>
+	<string name="user_followed_you">%s et segueix</string>
 	<string name="share_toot_title">Comparteix</string>
 	<string name="settings">Configuració</string>
 	<string name="publish">Publica</string>
@@ -24,12 +25,13 @@
 		<item quantity="other">seguint</item>
 	</plurals>
 	<string name="posts">Publicacions</string>
-	<string name="posts_and_replies">Amb respostes</string>
+	<string name="posts_and_replies">Tuts i respostes</string>
 	<string name="media">Multimèdia</string>
 	<string name="profile_about">Quant a</string>
 	<string name="button_follow">Segueix</string>
 	<string name="button_following">Seguint</string>
 	<string name="edit_profile">Edita el perfil</string>
+	<string name="share_user">Comparteix el perfil via…</string>
 	<string name="mute_user">Silencia %s</string>
 	<string name="unmute_user">Deixa de silenciar %s</string>
 	<string name="block_user">Bloca %s</string>
@@ -78,20 +80,8 @@
 		<item quantity="other">%d dies restants</item>
 	</plurals>
 	<string name="poll_closed">Finalitzada</string>
-	<string name="confirm_mute_title">Silencia el compte</string>
-	<string name="confirm_mute">Confirma per a silenciar %s</string>
 	<string name="do_mute">Silencia</string>
-	<string name="confirm_unmute_title">Deixar de silenciar el compte</string>
-	<string name="confirm_unmute">Confirma per deixar de silenciar %s</string>
-	<string name="do_unmute">Deixa de silenciar</string>
-	<string name="confirm_block_title">Bloca el compte</string>
-	<string name="confirm_block_domain_title">Bloca el domini</string>
-	<string name="confirm_block">Confirma per blocar %s</string>
 	<string name="do_block">Bloca</string>
-	<string name="confirm_unblock_title">Desbloca el compte</string>
-	<string name="confirm_unblock_domain_title">Desbloca el domini</string>
-	<string name="confirm_unblock">Confirma per desbloquejar %s</string>
-	<string name="do_unblock">Desbloca</string>
 	<string name="button_blocked">Blocat</string>
 	<string name="action_vote">Vota</string>
 	<string name="delete">Elimina</string>
@@ -100,6 +90,7 @@
 	<string name="notification_channel_audio_player">Reproducció d\'àudio</string>
 	<string name="play">Reprodueix</string>
 	<string name="pause">Pausa</string>
+	<string name="log_out">Tanca la sessió</string>
 	<string name="add_account">Afegeix un compte</string>
 	<string name="search_hint">Cerca</string>
 	<string name="hashtags">Etiquetes</string>
@@ -128,16 +119,12 @@
 	<string name="unfollow">Deixar de seguir</string>
 	<string name="back">Enrere</string>
 	<string name="search_communities">Nom del servidor o URL</string>
-	<string name="instance_rules_title">Normes del servidor</string>
-	<string name="signup_title">Crear un compte</string>
 	<string name="display_name">Nom</string>
 	<string name="username">Nom d\'usuari</string>
 	<string name="email">Correu electrònic</string>
 	<string name="password">Contrasenya</string>
 	<string name="confirm_password">Confirmar contrasenya</string>
-	<string name="password_note">Inclou lletres majúscules, caràcters especials i números per augmentar la seguretat de la teva contrasenya.</string>
 	<string name="category_general">General</string>
-	<string name="confirm_email_title">Comprova la teva safata d\'entrada</string>
 	<!-- %s is the email address -->
 	<string name="resend">Reenvia</string>
 	<string name="open_email_app">Obre l\'aplicació de correu</string>
@@ -146,8 +133,6 @@
 	<string name="save">Desa</string>
 	<string name="add_alt_text">Afegeix text alternatiu</string>
 	<string name="visibility_public">Públic</string>
-	<string name="visibility_followers_only">Només seguidors</string>
-	<string name="skip">Omet</string>
 	<string name="notification_type_follow">Seguidors nous</string>
 	<string name="notification_type_favorite">Favorits</string>
 	<string name="notification_type_mention">Mencions</string>
@@ -156,11 +141,12 @@
 	<string name="err_not_logged_in">Primer inicia sessió a Mastodon</string>
 	<string name="media_attachment_unsupported_type">El tipus de fitxer %s no és compatible</string>
 	<string name="media_attachment_too_big">El fitxer %1$s supera el límit de mida de %2$s MB</string>
+	<string name="settings_theme">Aparença</string>
+	<string name="theme_auto">Fes servir l\'aparença del dispositiu</string>
 	<string name="theme_light">Clar</string>
 	<string name="theme_dark">Fosc</string>
 	<string name="settings_behavior">Comportament</string>
 	<string name="settings_gif">Reprodueix emojis i avatar animats</string>
-	<string name="settings_custom_tabs">Utilitza el navegador intern</string>
 	<string name="settings_notifications">Notificacions</string>
 	<string name="settings_contribute">Contribueix a Mastodon</string>
 	<string name="settings_tos">Condicions de servei</string>
@@ -168,6 +154,7 @@
 	<string name="settings_clear_cache">Esborra la memòria cau multimèdia</string>
 	<string name="settings_app_version">Mastodon per a Android v%1$s (%2$d)</string>
 	<string name="media_cache_cleared">S\'ha esborrat la memòria cau multimèdia</string>
+	<string name="avatar_description">Ves al perfil de: %s</string>
 	<string name="more_options">Més opcions</string>
 	<string name="new_post">Nova publicació</string>
 	<string name="button_reply">Respon</string>
@@ -193,11 +180,8 @@
 	<string name="storage_permission_to_download">L\'aplicació necessita accedir al vostre emmagatzematge per desar aquest fitxer.</string>
 	<string name="open_settings">Obre la configuració</string>
 	<string name="error_saving_file">Error en desar el fitxer</string>
-	<string name="file_saved">Fitxer desat</string>
 	<string name="downloading">S\'està baixant…</string>
 	<!-- %s is the server domain -->
-	<string name="load_missing_posts">Carrega les publicacions faltants</string>
-	<string name="follow_back">Segueix</string>
 	<string name="button_follow_pending">Pendent</string>
 	<string name="follows_you">Et segueix</string>
 	<string name="manually_approves_followers">Aprova seguidors manualment</string>
@@ -249,26 +233,34 @@
 	<string name="file_size_mb">%.2f MB</string>
 	<string name="file_size_gb">%.2f GB</string>
 	<string name="upload_processing">S\'està processant…</string>
-	<!-- %s is version like 1.2.3 -->
-	<!-- %s is version like 1.2.3 -->
 	<!-- %s is file size -->
 	<string name="download_update">Baixa (%s)</string>
 	<string name="install_update">Instal·la</string>
-	<string name="i_agree">D’acord</string>
 	<string name="empty_list">Aquesta llista està buida</string>
 	<string name="instance_signup_closed">Aquest servidor no accepta nous registres.</string>
 	<string name="text_copied">Copiat al porta-retalls</string>
 	<string name="add_bookmark">Marca</string>
-	<string name="remove_bookmark">Elimina el marcador</string>
 	<string name="bookmarks">Marcadors</string>
-	<string name="your_favorites">Els meus preferits</string>
-	<string name="login_title">Hola de nou</string>
 	<string name="login_subtitle">Inicia sessió amb el servidor on vas crear el compte.</string>
 	<string name="server_url">URL del servidor</string>
+	<string name="server_filter_region_europe">Europa</string>
+	<string name="server_filter_region_north_america">Amèrica del Nord</string>
+	<string name="server_filter_region_south_america">Amèrica del Sud</string>
+	<string name="server_filter_region_africa">Àfrica</string>
+	<string name="server_filter_region_asia">Àsia</string>
+	<string name="server_filter_region_oceania">Oceania</string>
+	<string name="signup_passwords_dont_match">Les contrasenyes no coincideixen</string>
+	<string name="profile_add_row">Afegeix una fila</string>
+	<string name="profile_setup">Configuració del perfil</string>
 	<!-- %s is server domain -->
+	<string name="profile_bio">Biografia</string>
 	<!-- Shown in a progress dialog when you tap "follow all" -->
 	<!-- %1$s is server domain, %2$s is email domain. You can reorder these placeholders to fit your language better. -->
+	<string name="profile_featured">Destacat</string>
+	<string name="profile_timeline">Línia de temps</string>
+	<string name="profile_endorsed_accounts">Comptes</string>
 	<!-- %s is formatted file size ("467 KB image") -->
+	<string name="poll_style">Estil</string>
 	<!-- %s is the server domain -->
 	<!-- Shown on the "stamp" on the screen that appears after you report a post/user. Please keep the translation short, preferably a single word -->
 	<!-- %s is the app name (Mastodon, key app_name). I made it a placeholder so everything Just Works™ with forks -->
@@ -277,12 +269,29 @@
 	<!-- %s is the timestamp ("tomorrow at 12:34") -->
 	<!-- %s is the username -->
 	<!-- %s is the timestamp ("tomorrow at 12:34") -->
+	<string name="filter_context_public_timelines">Línies de temps públiques</string>
+	<string name="filter_context_profiles">Perfils</string>
 	<!-- Shown like a content warning, %s is the name of the filter -->
 	<!-- Shown in the post header. Please keep it short -->
 	<!-- %s is the name of the post language -->
 	<!-- %1$s is the language, %2$s is the name of the translation service -->
+	<string name="timeline_following">Inici</string>
 	<!-- Screen reader description for the menu on the home timeline screen -->
 	<!-- %s is the name of the list -->
 	<!-- %s is a username -->
 	<!-- %s is a time interval ("5 months") -->
+	<!-- Shown on a button that saves a file, after it was successfully saved -->
+	<string name="copy_profile_link">Copia l\'enllaç al perfil</string>
+	<string name="tab_home">Inici</string>
+	<string name="tab_search">Explora</string>
+	<string name="tab_profile">Perfil</string>
+	<string name="pin_post">Fixa en el perfil</string>
+	<!-- %s is the username -->
+	<!-- %1$s is your server domain, %2$s is the domain that was blocked, %3$,d is the follower count, %4$s is the `x_accounts` plural string -->
+	<!-- %1$s is the domain that was blocked, %2$,d is the follower count, %3$s is the `x_accounts` plural string -->
+	<!-- appears when you're about to block a server -->
+	<!-- The complete string will look like "You will lose X followers and Y people you follow". See will_lose_x_followers and will_lose_x_following -->
+	<!-- The complete string will look like "You will lose X people you follow". See will_lose_x_following -->
+	<!-- %s is `at_least_x_years_old`. Some languages, unlike English, may require the word "years" here. -->
+	<!-- Substituted into `date_of_birth_explanation` -->
 </resources>

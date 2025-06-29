@@ -24,6 +24,7 @@ import org.joinmastodon.android.model.FilterKeyword;
 import org.joinmastodon.android.model.viewmodel.CheckableListItem;
 import org.joinmastodon.android.model.viewmodel.ListItem;
 import org.joinmastodon.android.ui.M3AlertDialogBuilder;
+import org.joinmastodon.android.ui.utils.SimpleTextWatcher;
 import org.joinmastodon.android.ui.utils.UiUtils;
 import org.joinmastodon.android.ui.views.FloatingHintEditTextLayout;
 import org.parceler.Parcels;
@@ -44,11 +45,10 @@ import androidx.recyclerview.widget.RecyclerView;
 import me.grishka.appkit.Nav;
 import me.grishka.appkit.api.Callback;
 import me.grishka.appkit.api.ErrorResponse;
-import me.grishka.appkit.fragments.OnBackPressedListener;
 import me.grishka.appkit.utils.MergeRecyclerAdapter;
 import me.grishka.appkit.utils.SingleViewRecyclerAdapter;
 
-public class EditFilterFragment extends BaseSettingsFragment<Void> implements OnBackPressedListener{
+public class EditFilterFragment extends BaseSettingsFragment<Void>{
 	private static final int WORDS_RESULT=370;
 	private static final int CONTEXT_RESULT=651;
 
@@ -63,6 +63,13 @@ public class EditFilterFragment extends BaseSettingsFragment<Void> implements On
 	private ArrayList<String> deletedWordIDs=new ArrayList<>();
 	private EnumSet<FilterContext> context=EnumSet.allOf(FilterContext.class);
 	private boolean dirty;
+	private boolean wasDirty;
+
+	private Runnable confirmCallback=()->{
+		if(isDirty()){
+			UiUtils.showConfirmationAlert(getActivity(), R.string.discard_changes, 0, R.string.discard, ()->Nav.finish(this));
+		}
+	};
 
 	@Override
 	public void onCreate(Bundle savedInstanceState){
@@ -91,6 +98,12 @@ public class EditFilterFragment extends BaseSettingsFragment<Void> implements On
 	}
 
 	@Override
+	public void onDestroy(){
+		removeBackCallback(confirmCallback);
+		super.onDestroy();
+	}
+
+	@Override
 	protected void doLoadData(int offset, int count){}
 
 	@Override
@@ -101,6 +114,7 @@ public class EditFilterFragment extends BaseSettingsFragment<Void> implements On
 		titleEditLayout.updateHint();
 		if(filter!=null)
 			titleEdit.setText(filter.title);
+		titleEdit.addTextChangedListener(new SimpleTextWatcher(e->updateBackCallback()));
 
 		MergeRecyclerAdapter adapter=new MergeRecyclerAdapter();
 		adapter.addAdapter(new SingleViewRecyclerAdapter(titleEditLayout));
@@ -125,41 +139,41 @@ public class EditFilterFragment extends BaseSettingsFragment<Void> implements On
 		ArrayList<String> options=Arrays.stream(durationOptions).mapToObj(d->UiUtils.formatDuration(getActivity(), d)).collect(Collectors.toCollection(ArrayList<String>::new));
 		options.add(0, getString(R.string.filter_duration_forever));
 		options.add(getString(R.string.filter_duration_custom));
-		Instant[] newEnd={null};
-		boolean[] isCustom={false};
 		AlertDialog alert=new M3AlertDialogBuilder(getActivity())
 				.setTitle(R.string.settings_filter_duration_title)
 				.setSupportingText(endsAt==null ? null : getString(R.string.settings_filter_ends, UiUtils.formatRelativeTimestampAsMinutesAgo(getActivity(), endsAt, false)))
 				.setSingleChoiceItems(options.toArray(new String[0]), -1, (dlg, item)->{
 					AlertDialog a=(AlertDialog) dlg;
 					if(item==options.size()-1){ // custom
-						showCustomDurationAlert(isCustom[0] ? newEnd[0] : null, date->{
+						showCustomDurationAlert(null, date->{
 							if(date==null){
 								a.getListView().setItemChecked(item, false);
 							}else{
-								isCustom[0]=true;
-								newEnd[0]=date;
-								a.getButton(AlertDialog.BUTTON_POSITIVE).setEnabled(true);
+								Instant newEnd=date;
+								if(!Objects.equals(endsAt, newEnd)){
+									endsAt=newEnd;
+									updateDurationItem();
+									dirty=true;
+								}
+								a.dismiss();
 							}
 						});
 					}else{
-						isCustom[0]=false;
+						Instant newEnd;
 						if(item==0){
-							newEnd[0]=null;
+							newEnd=null;
 						}else{
-							newEnd[0]=Instant.now().plusSeconds(durationOptions[item-1]);
+							newEnd=Instant.now().plusSeconds(durationOptions[item-1]);
 						}
-						a.getButton(AlertDialog.BUTTON_POSITIVE).setEnabled(true);
+						if(!Objects.equals(endsAt, newEnd)){
+							endsAt=newEnd;
+							updateDurationItem();
+							dirty=true;
+						}
+						a.dismiss();
 					}
+					updateBackCallback();
 				})
-				.setPositiveButton(R.string.ok, (dlg, item)->{
-					if(!Objects.equals(endsAt, newEnd[0])){
-						endsAt=newEnd[0];
-						updateDurationItem();
-						dirty=true;
-					}
-				})
-				.setNegativeButton(R.string.cancel, null)
 				.show();
 		alert.getButton(AlertDialog.BUTTON_POSITIVE).setEnabled(false);
 	}
@@ -310,6 +324,7 @@ public class EditFilterFragment extends BaseSettingsFragment<Void> implements On
 				}
 				deletedWordIDs.addAll(result.getStringArrayList("deleted"));
 			}
+			updateBackCallback();
 		}
 	}
 
@@ -318,11 +333,19 @@ public class EditFilterFragment extends BaseSettingsFragment<Void> implements On
 	}
 
 	@Override
-	public boolean onBackPressed(){
-		if(isDirty()){
-			UiUtils.showConfirmationAlert(getActivity(), R.string.discard_changes, 0, R.string.discard, ()->Nav.finish(this));
-			return true;
+	protected void toggleCheckableItem(ListItem<?> item){
+		super.toggleCheckableItem(item);
+		updateBackCallback();
+	}
+
+	private void updateBackCallback(){
+		boolean dirty=isDirty();
+		if(dirty!=wasDirty){
+			wasDirty=dirty;
+			if(dirty)
+				addBackCallback(confirmCallback);
+			else
+				removeBackCallback(confirmCallback);
 		}
-		return false;
 	}
 }

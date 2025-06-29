@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<resources>
+<resources xmlns:tools="http://schemas.android.com/tools" tools:ignore="MissingTranslation">
 	<string name="log_in">ログイン</string>
 	<string name="next">次へ</string>
 	<string name="loading_instance">サーバー情報を取得しています…</string>
@@ -13,9 +13,8 @@
 	<string name="notifications">通知</string>
 	<string name="user_followed_you">%s さんにフォローされました</string>
 	<string name="user_sent_follow_request">%s さんがフォローリクエストを送信しました</string>
-	<string name="user_favorited">投稿を %s さんがお気に入りに登録しました</string>
-	<string name="notification_boosted">投稿を %s さんがブーストしました</string>
-	<string name="poll_ended">参加したアンケートの結果を見る</string>
+	<string name="user_favorited">%s さんがお気に入りにしました:</string>
+	<string name="notification_boosted">%s さんがブーストしました:</string>
 	<string name="share_toot_title">共有</string>
 	<string name="settings">設定</string>
 	<string name="publish">公開</string>
@@ -35,7 +34,7 @@
 	<string name="button_follow">フォロー</string>
 	<string name="button_following">フォロー中</string>
 	<string name="edit_profile">プロフィールを編集</string>
-	<string name="share_user">プロフィールを共有</string>
+	<string name="share_user">プロフィールを共有…</string>
 	<string name="mute_user">ミュート: %s さん</string>
 	<string name="unmute_user">ミュート解除: %s さん</string>
 	<string name="block_user">ブロック: %s さん</string>
@@ -79,22 +78,11 @@
 		<item quantity="other">%,d 票</item>
 	</plurals>
 	<string name="poll_closed">終了しました</string>
-	<string name="confirm_mute_title">アカウントをミュート</string>
-	<string name="confirm_mute">本当に %s さんをミュートしますか？</string>
 	<string name="do_mute">ミュート</string>
-	<string name="confirm_unmute_title">アカウントのミュートを解除</string>
-	<string name="confirm_unmute">本当に %s さんをミュート解除しますか？</string>
-	<string name="do_unmute">ミュート解除</string>
-	<string name="confirm_block_title">アカウントをブロック</string>
-	<string name="confirm_block_domain_title">ドメインをブロック</string>
-	<string name="confirm_block">本当に %s をブロックしますか？</string>
 	<string name="do_block">ブロック</string>
-	<string name="confirm_unblock_title">アカウントのブロックを解除</string>
-	<string name="confirm_unblock_domain_title">ドメインのブロックを解除</string>
-	<string name="confirm_unblock">本当に %s をブロック解除しますか？</string>
-	<string name="do_unblock">ブロック解除</string>
 	<string name="button_blocked">ブロック中</string>
 	<string name="action_vote">投票</string>
+	<string name="confirm">確認</string>
 	<string name="delete">削除</string>
 	<string name="confirm_delete_title">投稿を削除</string>
 	<string name="confirm_delete">本当にこの投稿を削除しますか？</string>
@@ -150,9 +138,8 @@
 	<string name="email">メールアドレス</string>
 	<string name="password">パスワード</string>
 	<string name="confirm_password">パスワードの確認</string>
-	<string name="password_note">パスワードの強度を高めるため、英大文字・数字・特殊文字を含めてください。</string>
 	<string name="category_general">一般</string>
-	<string name="confirm_email_title">確認のメールを送信しました</string>
+	<string name="confirm_email_title">確認メールを送信しました</string>
 	<!-- %s is the email address -->
 	<string name="confirm_email_subtitle">%s を認証するためのリンクをメールで送信しました。リンクをタップしてメールアドレスを認証し、この画面に戻ってきてください。</string>
 	<string name="confirm_email_didnt_get">リンクが届かない場合</string>
@@ -164,10 +151,9 @@
 	<string name="save">保存</string>
 	<string name="add_alt_text">代替テキストを追加</string>
 	<string name="visibility_public">公開</string>
-	<string name="visibility_followers_only">フォロワーのみ</string>
-	<string name="visibility_private">メンションした相手のみ</string>
+	<string name="visibility_followers_only">フォロワー</string>
+	<string name="visibility_private">特定の人</string>
 	<string name="recent_searches">最近</string>
-	<string name="skip">スキップ</string>
 	<string name="notification_type_follow">新しいフォロワー</string>
 	<string name="notification_type_favorite">お気に入り</string>
 	<string name="notification_type_reblog">ブースト</string>
@@ -181,14 +167,14 @@
 	<string name="media_attachment_unsupported_type">ファイル %s は対応していないファイル形式です</string>
 	<string name="media_attachment_too_big">ファイル %1$s が上限の %2$s MB を超えています</string>
 	<string name="settings_theme">テーマ</string>
-	<string name="theme_auto">デバイスのテーマ</string>
+	<string name="theme_auto">端末のテーマ</string>
 	<string name="theme_light">ライト</string>
 	<string name="theme_dark">ダーク</string>
 	<string name="settings_behavior">動作</string>
-	<string name="settings_gif">アニメーションアイコンと絵文字を再生</string>
-	<string name="settings_custom_tabs">アプリ内ブラウザーを使用</string>
+	<string name="settings_gif">アニメーションアイコンと絵文字を再生する</string>
+	<string name="settings_custom_tabs">リンクを開く</string>
 	<string name="settings_notifications">通知</string>
-	<string name="settings_contribute">Mastodon に貢献</string>
+	<string name="settings_contribute">Mastodon に貢献する</string>
 	<string name="settings_tos">利用規約</string>
 	<string name="settings_privacy_policy">プライバシーポリシー</string>
 	<string name="settings_clear_cache">メディアキャッシュをクリア</string>
@@ -198,7 +184,7 @@
 	<string name="sensitive_content_explain">投稿者が閲覧注意に設定しました。</string>
 	<string name="avatar_description">%s さんのプロフィールを見る</string>
 	<string name="more_options">その他のオプション</string>
-	<string name="new_post">新しい投稿</string>
+	<string name="new_post">新規投稿</string>
 	<string name="button_reply">返信</string>
 	<string name="button_reblog">ブースト</string>
 	<string name="button_favorite">お気に入り</string>
@@ -215,8 +201,8 @@
 	<string name="followed_user">%s さんをフォローしました</string>
 	<string name="following_user_requested">%s さんにフォローリクエストを送信しました</string>
 	<string name="open_in_browser">ブラウザーで開く</string>
-	<string name="hide_boosts_from_user">ブーストを非表示: %s さん</string>
-	<string name="show_boosts_from_user">ブーストを表示: %s さん</string>
+	<string name="hide_boosts_from_user">ブーストを非表示</string>
+	<string name="show_boosts_from_user">ブーストを表示</string>
 	<string name="signup_reason">参加したい理由を入力してください</string>
 	<string name="signup_reason_note">申請の確認に役立つメッセージを添えてください。</string>
 	<string name="clear">クリア</string>
@@ -228,17 +214,15 @@
 	<string name="storage_permission_to_download">このファイルを保存するには、ストレージへのアクセスが必要です。</string>
 	<string name="open_settings">設定を開く</string>
 	<string name="error_saving_file">ファイルの保存に失敗しました</string>
-	<string name="file_saved">ファイルを保存しました</string>
 	<string name="downloading">ダウンロード中…</string>
 	<string name="no_app_to_handle_action">この操作を処理するアプリがありません</string>
-	<string name="local_timeline">ローカル</string>
+	<string name="local_timeline">リアルタイムフィード</string>
 	<string name="trending_posts_info_banner">Mastodon で注目を集めている投稿がここに表示されています。</string>
 	<string name="trending_links_info_banner">これらのニュースは Mastodon で話題になっています。</string>
 	<!-- %s is the server domain -->
 	<string name="local_timeline_info_banner">あなたのサーバー (%s) の全ユーザーの全投稿です。</string>
 	<string name="recommended_accounts_info_banner">こちらは、あなたがフォローしている人に基づいた、おすすめのアカウントです。</string>
-	<string name="see_new_posts">新しい投稿</string>
-	<string name="load_missing_posts">不足している投稿を読み込む</string>
+	<string name="see_new_posts">新着投稿</string>
 	<string name="follow_back">フォローバック</string>
 	<string name="button_follow_pending">保留</string>
 	<string name="follows_you">フォローされています</string>
@@ -289,8 +273,6 @@
 	<string name="file_size_mb">%.2f MB</string>
 	<string name="file_size_gb">%.2f GB</string>
 	<string name="upload_processing">処理中…</string>
-	<!-- %s is version like 1.2.3 -->
-	<!-- %s is version like 1.2.3 -->
 	<!-- %s is file size -->
 	<string name="download_update">ダウンロード (%s)</string>
 	<string name="install_update">インストール</string>
@@ -304,14 +286,13 @@
 	<string name="remove_bookmark">ブックマークから削除</string>
 	<string name="bookmarks">ブックマーク</string>
 	<string name="your_favorites">お気に入り</string>
-	<string name="login_title">アカウントでログイン</string>
+	<string name="login_title">お帰りなさい</string>
 	<string name="login_subtitle">アカウントがあるサーバーの URL を入力してください。</string>
 	<string name="server_url">サーバーの URL</string>
-	<string name="signup_random_server_explain">選択せずに次へ進むと、利用中の言語に基づいてサーバーを自動選択します。</string>
 	<string name="server_filter_any_language">すべての言語</string>
 	<string name="server_filter_instant_signup">開放</string>
 	<string name="server_filter_manual_review">承認制</string>
-	<string name="server_filter_any_signup_speed">登録方法（指定しない）</string>
+	<string name="server_filter_any_signup_speed">すべての登録方法</string>
 	<string name="server_filter_region_europe">ヨーロッパ</string>
 	<string name="server_filter_region_north_america">北アメリカ</string>
 	<string name="server_filter_region_south_america">南アメリカ</string>
@@ -319,13 +300,11 @@
 	<string name="server_filter_region_asia">アジア</string>
 	<string name="server_filter_region_oceania">オセアニア</string>
 	<string name="not_accepting_new_members">新規登録を受け付けていません</string>
-	<string name="category_special_interests">テーマ別</string>
+	<string name="category_special_interests">テーマ</string>
 	<string name="signup_passwords_dont_match">パスワードが一致しません</string>
-	<string name="pick_server_for_me">おまかせ</string>
 	<string name="profile_add_row">フィールドを追加</string>
 	<string name="profile_setup">プロフィールの設定</string>
 	<string name="profile_setup_subtitle">プロフィール画面であとから設定することもできます。</string>
-	<string name="popular_on_mastodon">人気のアカウント</string>
 	<string name="follow_all">すべてフォロー</string>
 	<string name="server_rules_disagree">同意しない</string>
 	<string name="privacy_policy_explanation">TL;DR: 私たちはいかなる情報も収集・処理しません。</string>
@@ -350,7 +329,7 @@
 	<string name="join_default_server">%s に登録</string>
 	<string name="pick_server">ほかのサーバーをさがす</string>
 	<string name="signup_or_login">または</string>
-	<string name="learn_more">詳しく学ぶ</string>
+	<string name="learn_more">詳細</string>
 	<string name="welcome_to_mastodon">Mastodon とは</string>
 	<string name="welcome_paragraph1">Mastodon は、いち企業の統制に依存しない非中央集権型のソーシャルネットワークです。たくさんの独立したサーバーが相互につながり合い、ひとつのネットワークを形成しています。</string>
 	<string name="what_are_servers">サーバーとは</string>
@@ -414,10 +393,10 @@
 	<!-- %s is the app name (Mastodon, key app_name). I made it a placeholder so everything Just Works™ with forks -->
 	<string name="about_app">%s について</string>
 	<string name="default_post_language">デフォルトの投稿言語</string>
-	<string name="settings_alt_text_reminders">代替テキストのリマインダーを追加</string>
-	<string name="settings_confirm_unfollow">フォローを解除する前に確認</string>
-	<string name="settings_confirm_boost">ブーストする前に確認</string>
-	<string name="settings_confirm_delete_post">投稿を削除する前に確認</string>
+	<string name="settings_alt_text_reminders">代替テキストのリマインダーを追加する</string>
+	<string name="settings_confirm_unfollow">フォローを解除する前に確認する</string>
+	<string name="settings_confirm_boost">ブーストする前に確認する</string>
+	<string name="settings_confirm_delete_post">投稿を削除する前に確認する</string>
 	<string name="pause_all_notifications">すべて一時停止</string>
 	<string name="pause_notifications_off">オフ</string>
 	<string name="notifications_policy_anyone">誰でも</string>
@@ -447,9 +426,9 @@
 	<string name="send_email_to_server_admin">管理者にメッセージを送信</string>
 	<string name="notifications_disabled_in_system">端末の設定から通知を有効にして、どこからでも最新情報を見られるようにしましょう。</string>
 	<string name="settings_even_more">さらに詳しい設定</string>
-	<string name="settings_show_cws">コンテンツ警告を表示</string>
+	<string name="settings_show_cws">コンテンツ警告を表示する</string>
 	<string name="settings_hide_sensitive_media">閲覧注意としてマークされたメディアを隠す</string>
-	<string name="settings_show_interaction_counts">投稿のインタラクションを表示</string>
+	<string name="settings_show_interaction_counts">投稿のインタラクションを表示する</string>
 	<string name="settings_show_emoji_in_names">表示名でのカスタム絵文字</string>
 	<plurals name="in_x_seconds">
 		<item quantity="other">%d 秒後</item>
@@ -484,7 +463,7 @@
 	<string name="settings_filter_duration">期間</string>
 	<string name="settings_filter_muted_words">ミュートする言葉</string>
 	<string name="settings_filter_context">ミュートする場所</string>
-	<string name="settings_filter_show_cw">コンテンツ警告を表示</string>
+	<string name="settings_filter_show_cw">コンテンツ警告を表示する</string>
 	<string name="settings_filter_show_cw_explanation">このフィルターに一致する投稿を継続して表示しますが、コンテンツ警告で隠します</string>
 	<string name="settings_delete_filter">フィルターを削除</string>
 	<string name="filter_duration_forever">無期限</string>
@@ -578,7 +557,7 @@
 	<string name="remove">削除</string>
 	<string name="add_list_member">メンバーを追加</string>
 	<string name="search_among_people_you_follow">フォローしている人の中から検索</string>
-	<string name="add_user_to_list">リストに追加…</string>
+	<string name="add_user_to_list">リストに追加/削除…</string>
 	<string name="add_user_to_list_title">リストに追加</string>
 	<!-- %s is a username -->
 	<string name="manage_user_lists">%s さんが表示されるリストを管理</string>
@@ -621,4 +600,223 @@
 	<string name="discoverability">見つけられやすさ</string>
 	<string name="discoverability_help">Mastodon で見つけられやすさをオプトインにすると、投稿を検索結果やトレンドに表示することがあります。\n\nあなたと似た興味を持つ人にプロフィールが候補表示されることもあります。\n\nオプトアウトしても、名前で検索された場合はプロフィールが表示されます。</string>
 	<string name="app_version_copied">バージョン番号をクリップボードにコピーしました</string>
+	<string name="onboarding_recommendations_intro">自分の手でタイムラインを作ってみましょう。
+フォローを増やせば、タイムラインはより賑やかでおもしろいものになります。</string>
+	<string name="onboarding_recommendations_title">自分のホームタイムラインを作る</string>
+	<string name="article_by_author">%s から</string>
+	<string name="button_reblogged">ブーストしました</string>
+	<string name="button_favorited">お気に入りに登録しました</string>
+	<string name="join_server_x_with_invite">%s に招待ありで参加する</string>
+	<string name="expired_invite_link">招待リンクが有効期限切れです</string>
+	<string name="expired_clipboard_invite_link_alert">クリップボードにある %1$s への招待リンクは有効期限切れのため、登録に使用できません。\n\n既存ユーザーに新しいリンクを貰うか、%2$s に登録するか、別のサーバーを選択して登録できます。</string>
+	<string name="invalid_invite_link">招待リンクが無効です</string>
+	<string name="invalid_clipboard_invite_link_alert">クリップボードにある %1$s への招待リンクは有効ではないため、登録に使用できません。\n\n既存ユーザーに新しいリンクを貰うか、%2$s に登録するか、別のサーバーを選択して登録できます。</string>
+	<string name="use_invite_link">招待リンクを使用する</string>
+	<string name="enter_invite_link">招待リンクを入力してください</string>
+	<string name="this_invite_is_invalid">この招待リンクは有効ではありません。</string>
+	<string name="this_invite_has_expired">この招待リンクは有効期限切れです。</string>
+	<string name="invite_link_pasted">クリップボードからリンクが貼り付けられました。</string>
+	<string name="need_invite_to_join_server">%s に参加するには、既存ユーザーからの招待リンクが必要です。</string>
+	<string name="mute_user_confirm_title">ユーザーをミュートしますか？</string>
+	<string name="user_wont_know_muted">ミュートしていることは相手に伝わりません。</string>
+	<string name="user_can_still_see_your_posts">引き続き相手はあなたの投稿を閲覧できますが、あなたは相手の投稿を閲覧できません。</string>
+	<string name="you_wont_see_user_mentions">相手をメンションした投稿も閲覧できなくなります。</string>
+	<string name="user_can_mention_and_follow_you">相手はあなたをメンションしたりフォローしたりできますが、あなたには見えません。</string>
+	<string name="unmuted_user_x">ミュート解除: %s さん</string>
+	<string name="block_user_confirm_title">ユーザーをブロックしますか？</string>
+	<string name="user_can_see_blocked">ブロックしていることが相手に伝わります。</string>
+	<string name="user_cant_see_each_other_posts">相手はあなたの投稿を閲覧できず、あなたも相手の投稿を閲覧できません。</string>
+	<string name="user_cant_mention_or_follow_you">相手はあなたをメンションしたりフォローしたりできません。</string>
+	<string name="unblocked_user_x">ブロック解除: %s さん</string>
+	<string name="block_domain_confirm_title">ドメインをブロックしますか？</string>
+	<string name="do_block_server">サーバーをブロックする</string>
+	<string name="block_user_x_instead">代わりに %s さんをブロック</string>
+	<string name="users_cant_see_blocked">このサーバーのユーザーからのすべての投稿と通知が閲覧できなくなります。</string>
+	<string name="you_wont_see_server_posts">相手のサーバーのユーザーのすべての投稿を閲覧できなくなります。</string>
+	<string name="server_cant_mention_or_follow_you">このサーバーのユーザーはあなたをフォローできなくなります。</string>
+	<string name="server_can_interact_with_older">このサーバーのユーザーはあなたの古い投稿に反応できます。</string>
+	<string name="unblocked_domain_x">ドメイン %s のブロックを解除</string>
+	<string name="handle_help_title">ユーザー ID とは何ですか？</string>
+	<string name="handle_title">ユーザー ID</string>
+	<string name="handle_username_explanation">サーバー上での一意の識別子です。別のサーバーには同じユーザー名のユーザーがいるかもしれません。</string>
+	<string name="handle_title_own">あなたのユーザー ID</string>
+	<string name="handle_username_explanation_own">このサーバー上でのあなたの一意の識別子です。別のサーバーには同じユーザー名のユーザーがいるかもしれません。</string>
+	<string name="server">サーバー</string>
+	<string name="handle_server_explanation">それぞれの投稿が住むデジタルの家です。</string>
+	<string name="handle_explanation">ユーザー ID は、そのユーザーが誰であり、どのサーバーにいるかを示すもので、あなたが &lt;a&gt;ActivityPub 搭載のプラットフォーム&lt;/a&gt;が形成するソーシャルウェブを介してそのユーザーと交流するときに使用します。</string>
+	<string name="handle_server_explanation_own">あなたの投稿が住むデジタルの家です。気に入らなければ、フォロワーを維持したまま、サーバーをいつでも引っ越せます。</string>
+	<string name="handle_explanation_own">あなたのユーザー ID は、あなたが誰であり、どのサーバーにいるかを示すもので、他のユーザーが &lt;a&gt;ActivityPub 搭載のプラットフォーム&lt;/a&gt;が形成するソーシャルウェブを介してあなたと交流するときに使用します。</string>
+	<string name="what_is_activitypub_title">ActivityPub とは？</string>
+	<string name="what_is_activitypub">ActivityPub は、Mastodon と他のソーシャルネットワークとの間で話されている言語のようなものです。\n\nMastodon 同士だけでなく、異なるソーシャルアプリの人とつながり、交流することができます。</string>
+	<string name="handle_copied">ユーザー ID をクリップボードにコピーしました。</string>
+	<string name="qr_code">QR コード</string>
+	<string name="scan_qr_code">QR コードをスキャン</string>
+	<!-- Shown on a button that saves a file, after it was successfully saved -->
+	<string name="saved">保存しました</string>
+	<string name="image_saved">画像を保存しました。</string>
+	<string name="video_saved">動画を保存しました。</string>
+	<string name="view_file">表示</string>
+	<string name="share_sheet_preview_profile">%s の Mastodon</string>
+	<string name="share_sheet_preview_post">%1$s の Mastodon:「%2$s」</string>
+	<string name="copy_profile_link">プロフィールへのリンクをコピー</string>
+	<string name="in_app_browser">アプリ内ブラウザー</string>
+	<string name="system_browser">システムのブラウザー</string>
+	<string name="add_muted_word_short">言葉を追加</string>
+	<string name="tab_home">ホーム</string>
+	<string name="tab_search">探索</string>
+	<string name="tab_profile">プロフィール</string>
+	<string name="pin_post">プロフィールに固定</string>
+	<string name="unpin_post">プロフィールへの固定を解除</string>
+	<string name="post_pinned">投稿を固定しました</string>
+	<string name="post_unpinned">投稿の固定を解除しました</string>
+	<!-- %s is the username -->
+	<string name="enable_new_post_notifications">%s さんの投稿を通知</string>
+	<string name="disable_new_post_notifications">%s さんの投稿通知を停止</string>
+	<string name="new_post_notifications_enabled">新着投稿の通知を受け取ります。</string>
+	<string name="new_post_notifications_disabled">新着投稿の通知を受け取りません。</string>
+	<string name="mute_conversation">会話をミュート</string>
+	<string name="unmute_conversation">会話のミュートを解除</string>
+	<string name="visibility_unlisted">ひかえめな公開</string>
+	<string name="filtered_notifications">フィルターされた通知</string>
+	<string name="filter_notifications">通知のフィルタリング...</string>
+	<string name="notification_filter_following">あなたがフォローしていないアカウント</string>
+	<string name="notification_filter_following_explanation">手動で通知を受け入れたアカウントはフィルタリングされません</string>
+	<string name="notification_filter_followers">あなたのフォロワーではないアカウント</string>
+	<string name="notification_filter_followers_explanation">フォローされていても、フォローから 3 日経っていない場合はフィルタリングされます</string>
+	<string name="notification_filter_new_accounts">新しいアカウント</string>
+	<string name="notification_filter_new_accounts_explanation">作成から 30 日以内のアカウントからの通知がフィルタリングされます</string>
+	<string name="notification_filter_mentions">会話外からの非公開メンション</string>
+	<string name="notification_filter_mentions_explanation">メンションした相手や、フォローしているアカウント以外からの返信がフィルタリングされます</string>
+	<string name="allow_notifications">通知を許可する</string>
+	<string name="mute_notifications">通知リクエストを無視する</string>
+	<plurals name="x_people_you_may_know">
+		<item quantity="other">%,d 人があなたを知っている可能性があります</item>
+	</plurals>
+	<string name="notifications_from_user">%s さんからの通知</string>
+	<string name="notifications_muted">%s さんからの通知は無視されました。</string>
+	<string name="notifications_allowed">%s さんはあなたの通知リストに登録されました。</string>
+	<string name="visibility_subtitle_public">Mastodon 以外も含むすべての人</string>
+	<string name="visibility_subtitle_unlisted">より表示機会の少ない公開</string>
+	<string name="visibility_subtitle_followers">フォロワーのみ</string>
+	<string name="visibility_subtitle_private">投稿でメンションした相手のみ</string>
+	<string name="view_boosts">ブーストを確認</string>
+	<string name="view_favorites">お気に入りを確認</string>
+	<string name="undo_reblog">ブーストを取り消す</string>
+	<string name="undo_favorite">お気に入りを取り消す</string>
+	<string name="could_not_reach_server">サーバーに到達できませんでした。接続を確認して再試行しますか？</string>
+	<string name="connection_timed_out">リクエストがタイムアウトしました。接続を確認して再試行しますか？</string>
+	<string name="server_error">サーバーとの対話に失敗しました。原因はあなたにはない可能性があります。再試行しますか？</string>
+	<string name="not_found">削除できないか、既に存在していない可能性があります。</string>
+	<string name="no_servers_found">「%s」に該当するサーバーは見つかりませんでした</string>
+	<string name="signup_username_taken">このユーザー名はすでに使用されています。別のユーザー名にするか、&lt;a&gt;サーバーの選択をやり直し&lt;/a&gt;てください。</string>
+	<string name="signup_email_invalid">有効なメールアドレスではないようです。</string>
+	<string name="signup_email_taken">使用中のメールアドレスです。&lt;a&gt;パスワードをお忘れですか&lt;/a&gt;？</string>
+	<plurals name="x_new_notifications">
+		<item quantity="other">新着通知 %,d 件</item>
+	</plurals>
+	<string name="dismiss">無視する</string>
+	<string name="donation_once">1 回だけ</string>
+	<string name="donation_monthly">毎月</string>
+	<string name="donation_yearly">毎年</string>
+	<string name="currency">通貨</string>
+	<string name="donation_success_share">みんなに広める</string>
+	<string name="donation_success_title">ご協力ありがとうございます！</string>
+	<string name="donation_success_subtitle">寄付を確認するメールがすぐに届きます。</string>
+	<string name="donation_server_error">申し訳ありません。エラーが発生し、寄付を処理できませんでした。\n\n数分後に再試行してください。</string>
+	<string name="settings_donate">Mastodon に寄付する</string>
+	<string name="settings_manage_donations">寄付を管理</string>
+	<string name="cant_load_image">画像を読み込めませんでした</string>
+	<string name="poll_see_results">結果を表示</string>
+	<string name="poll_hide_results">結果を非表示</string>
+	<plurals name="x_attachments">
+		<item quantity="other">添付 %d 件</item>
+	</plurals>
+	<plurals name="user_and_x_more_favorited">
+		<item quantity="other">%1$s さん他 %2$,d 人がお気に入りにしました:</item>
+	</plurals>
+	<plurals name="user_and_x_more_boosted">
+		<item quantity="other">%1$s さん他 %2$,d 人がブーストしました:</item>
+	</plurals>
+	<plurals name="poll_ended_x_voters">
+		<item quantity="other">%1$s さんのアンケートでの、あなたと %2$,d 人の投票先:</item>
+	</plurals>
+	<string name="own_poll_ended">アンケートが終了しました</string>
+	<string name="user_just_posted">%s さんが投稿しました</string>
+	<string name="user_edited_post">あなたとやり取りした投稿を %s さんが編集しました</string>
+	<string name="relationship_severance_account_suspension">%1$s の管理者が %2$s さんを停止したため、今後は新しい投稿を受信したりやり取りしたりできなくなりました。</string>
+	<!-- %1$s is your server domain, %2$s is the domain that was blocked, %3$,d is the follower count, %4$s is the `x_accounts` plural string -->
+	<string name="relationship_severance_domain_block">%1$s の管理者が、あなたのフォロワー %3$,d 人とフォローしている%4$sがいる %2$s をブロックしました。</string>
+	<plurals name="x_accounts">
+		<item quantity="other">アカウント %,d 件</item>
+	</plurals>
+	<!-- %1$s is the domain that was blocked, %2$,d is the follower count, %3$s is the `x_accounts` plural string -->
+	<string name="relationship_severance_user_domain_block">%1$s をブロックし、フォロワー %2$,d 人とフォローしている%3$sを削除しました。</string>
+	<string name="relationship_severance_learn_more">詳細</string>
+	<string name="moderation_warning_action_none">あなたのアカウントは管理者からの警告を受けています。</string>
+	<string name="moderation_warning_action_disable">あなたのアカウントは無効化されました。</string>
+	<string name="moderation_warning_action_mark_statuses_as_sensitive">あなたのいくつかの投稿が閲覧注意と判定されています。</string>
+	<string name="moderation_warning_action_delete_statuses">あなたのいくつかの投稿が削除されました。</string>
+	<string name="moderation_warning_action_sensitive">あなたの投稿はこれから閲覧注意としてマークされます。</string>
+	<string name="moderation_warning_action_silence">あなたのアカウントは制限されています。</string>
+	<string name="moderation_warning_action_suspend">あなたのアカウントは停止されています。</string>
+	<string name="moderation_warning_learn_more">詳細</string>
+	<string name="text_show_more">もっと見る</string>
+	<string name="avatar_move_and_scale">移動と拡大/縮小</string>
+	<string name="confirm_avatar_crop">選択</string>
+	<string name="settings_use_dynamic_colors">Dynamic color を使用する</string>
+	<string name="settings_accounts">アカウント</string>
+	<string name="settings_add_account">アカウントを追加...</string>
+	<string name="settings_app_settings">アプリ設定</string>
+	<string name="account_settings">アカウント設定</string>
+	<string name="settings_about_this_server">このサーバーについて</string>
+	<string name="manage_account">アカウント管理</string>
+	<string name="switch_to_this_account">このアカウントに切り替える</string>
+	<string name="delete_account">アカウントを削除する</string>
+	<string name="notification_type_status">新着投稿</string>
+	<plurals name="user_and_x_more_followed">
+		<item quantity="other">%1$s さん他 %2$,d 人にフォローされています</item>
+	</plurals>
+	<string name="familiar_followers_one">%s さんにフォローされています</string>
+	<string name="familiar_followers_two">%s さんと %s さんにフォローされています</string>
+	<string name="profile_saved_posts">保存した投稿</string>
+	<string name="profile_saved_posts_explanation">保存した投稿はあなたのみ閲覧できます。</string>
+	<string name="search_people">人々</string>
+	<plurals name="familiar_followers_many">
+		<item quantity="other">%1$s さん、%2$s さん他 %3$,d 人にフォローされています</item>
+	</plurals>
+	<plurals name="x_followers_you_know">
+		<item quantity="other">あなたの知り合い %,d 人のフォロワー</item>
+	</plurals>
+	<!-- appears when you're about to block a server -->
+	<plurals name="server_x_followers_will_be_removed">
+		<item quantity="other">このサーバーの %,d 人のフォロワーが削除されます。</item>
+	</plurals>
+	<!-- The complete string will look like "You will lose X followers and Y people you follow". See will_lose_x_followers and will_lose_x_following -->
+	<string name="server_x_followers_and_following_will_be_removed">%1$sと%2$sがいなくなります。</string>
+	<plurals name="will_lose_x_followers">
+		<item quantity="other">フォロワー %,d 人</item>
+	</plurals>
+	<plurals name="will_lose_x_following">
+		<item quantity="other">フォローしている %,d 人</item>
+	</plurals>
+	<!-- The complete string will look like "You will lose X people you follow". See will_lose_x_following -->
+	<string name="server_x_following_will_be_removed">%sがいなくなります。</string>
+	<string name="load_missing_posts_above">上の不足している投稿を読み込む</string>
+	<string name="load_missing_posts_below">下の不足している投稿を読み込む</string>
+	<string name="signup_password_too_short">パスワードは 8 文字以上で設定してください。</string>
+	<string name="private_reply">非公開の返信</string>
+	<string name="private_mention">非公開のメンション</string>
+	<string name="post_header_reply">返信</string>
+	<string name="post_header_mention">メンション</string>
+	<string name="report_reason_legal">違法です</string>
+	<string name="report_reason_legal_subtitle">あなたが住んでいる国またはサーバーが存在する国の法律に違反していると思われる場合</string>
+	<string name="date_of_birth">生年月日</string>
+	<!-- %s is `at_least_x_years_old`. Some languages, unlike English, may require the word "years" here. -->
+	<string name="date_of_birth_explanation">Mastodon を使用するには、%s 歳以上であることを確認する必要があります。登録後は保存しません。</string>
+	<string name="open_link">開く</string>
+	<string name="copy">コピー</string>
+	<!-- Substituted into `date_of_birth_explanation` -->
+	<plurals name="at_least_x_years_old">
+		<item quantity="other">%d</item>
+	</plurals>
 </resources>

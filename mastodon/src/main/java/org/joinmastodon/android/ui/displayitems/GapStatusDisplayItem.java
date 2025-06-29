@@ -13,6 +13,8 @@ import org.joinmastodon.android.ui.drawables.SawtoothTearDrawable;
 // Mind the gap!
 public class GapStatusDisplayItem extends StatusDisplayItem{
 	public boolean loading;
+	public boolean enteredFromTop; // While the user was scrolling, did the gap item pop out from behind the top edge of the list?
+	public boolean visible; // Is this item currently within the viewport of the RecyclerView (and has a bound view)?
 
 	public GapStatusDisplayItem(String parentID, BaseStatusListFragment parentFragment){
 		super(parentID, parentFragment);
@@ -38,6 +40,7 @@ public class GapStatusDisplayItem extends StatusDisplayItem{
 		public void onBind(GapStatusDisplayItem item){
 			text.setVisibility(item.loading ? View.GONE : View.VISIBLE);
 			progress.setVisibility(item.loading ? View.VISIBLE : View.GONE);
+			text.setText(item.enteredFromTop ? R.string.load_missing_posts_above : R.string.load_missing_posts_below);
 		}
 
 		@Override
